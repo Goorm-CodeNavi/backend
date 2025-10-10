@@ -47,17 +47,7 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script_stop: true
           script: |
-            # 기존 컨테이너 정지
-            sudo docker-compose -f ./docker-compose.yml down
-            
-            # 최신 이미지 pull
+            sudo docker-compose down
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
-            
-            # 사용하지 않는 이미지 정리
             sudo docker image prune -f
-            
-            # 새 컨테이너 실행
-            sudo docker-compose -f ./docker-compose.yml up -d
-            
-            # 로그 확인 (선택사항)
-            sudo docker-compose -f ./docker-compose.yml logs --tail=50
+            sudo docker-compose up -d
