@@ -15,3 +15,9 @@ spring:
       format-sql: true
     hibernate:
       ddl-auto: create-drop
+
+  # Spring Security 삭제했습니다
+  # 개발하면서 삭제하시면 됩니다 ><
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration

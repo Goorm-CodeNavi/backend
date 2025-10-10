@@ -9,4 +9,9 @@ public class TestController {
     public String getHome() {
         return "Hello World!";
     }
+
+    @GetMapping("/health")
+    public String healthCheck() {
+        return "Server is running!";
+    }
 }
