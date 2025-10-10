@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 RUN /opt/gradle/bin/gradle clean build -x test
 
-FROM openjdk:17-jre-slim
+FROM openjdk:17
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
