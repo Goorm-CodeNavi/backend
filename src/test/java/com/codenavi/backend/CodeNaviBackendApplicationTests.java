@@ -1,16 +1,13 @@
 package com.codenavi.backend;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-@EnableAutoConfiguration(exclude = {SecurityAutoConfiguration.class})
+@SpringBootTest(classes = CodeNaviBackendApplication.class,
+		properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration")
 class CodeNaviBackendApplicationTests {
 
 	@Test
 	void contextLoads() {
 	}
-
 }
