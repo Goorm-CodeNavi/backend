@@ -37,7 +37,7 @@ jobs:
         docker login -u ${{ secrets.DOCKER_USERNAME }} -p "${{ secrets.DOCKER_PASSWORD }}"
               
         docker buildx build -f Dockerfile -t myunbongs/codenavi-api:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/{{ secrets.DOCKER_REPO }}
+        docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
       
     ## Deploy EC2
     - name: Deploy to EC2
