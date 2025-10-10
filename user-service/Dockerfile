@@ -4,9 +4,11 @@ WORKDIR /app
 
 COPY . .
 
+FROM openjdk:17
+
+RUN chmod +x ./gradlew
 RUN ./gradlew clean build -x test
 
-FROM openjdk:17
 
 WORKDIR /app
 
