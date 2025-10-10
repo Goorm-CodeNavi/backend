@@ -9,7 +9,7 @@ COPY gradlew ./
 COPY gradlew.bat ./
 
 # 소스 코드 복사
-COPY src/ src/
+COPY . .
 
 # 권한 설정 후 빌드
 RUN chmod +x ./gradlew
