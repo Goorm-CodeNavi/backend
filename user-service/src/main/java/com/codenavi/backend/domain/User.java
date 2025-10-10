@@ -141,6 +141,14 @@ public class User implements UserDetails {
 
         @Column(name = "profile_github_url")
         private String githubUrl;
+
+        @Column(name = "profile_email")
+        private String email;
+
+        @Column(name = "profile_username")
+        private String username;
+
+
     }
 
     @Embeddable
