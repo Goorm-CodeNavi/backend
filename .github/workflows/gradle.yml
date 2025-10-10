@@ -29,7 +29,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker buildx build -f Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest .
+          docker buildx build -f ./user-service/Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
 
       - name: Deploy Images with Docker compose
