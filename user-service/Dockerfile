@@ -5,7 +5,7 @@ COPY . .
 RUN gradle clean build -x test
 
 # 실행 스테이지
-FROM openjdk:17-jre-slim
+FROM openjdk:17
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
