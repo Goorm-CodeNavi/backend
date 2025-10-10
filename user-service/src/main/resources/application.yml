@@ -1,11 +1,13 @@
 server:
   port: 8080
+  profiles:
+    include: secret
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/codenavi-db
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/codenavi-db?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     username: root
-    password: 1234
 
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
