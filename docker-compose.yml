@@ -35,9 +35,7 @@ services:
       - app-network
 
   user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/user-service:latest
     container_name: user-service
     env_file:
       - .env

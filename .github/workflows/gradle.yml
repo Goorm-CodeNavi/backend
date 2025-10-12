@@ -36,7 +36,7 @@ jobs:
           context: ./user-service 
           file: ./user-service/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/user-service:latest
           platforms: linux/amd64,linux/arm64
 
       - name: Copy docker-compose to EC2
