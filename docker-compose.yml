@@ -1,63 +1,31 @@
 version: "3.8"
 
 services:
+  user-service:
+    image: ${DOCKER_USERNAME}/user-service:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - codenavi-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://${PROD_HOST}:3306/${MYSQL_DATABASE}
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+    restart: unless-stopped
+
   codenavi-db:
     image: mysql:8
-    container_name: codenavi-db
-    env_file:
-      - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      TZ: Asia/Seoul
     ports:
       - "3306:3306"
-    command: [
-      "--character-set-server=utf8mb4",
-    ]
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "mysqladmin",
-          "ping",
-          "-h",
-          "localhost",
-          "-u${MYSQL_USER}",
-          "-p${MYSQL_PASSWORD}",
-        ]
-      timeout: 20s
-      retries: 10
-      interval: 30s
-    networks:
-      - app-network
-
-  user-service:
-    image: ${DOCKER_USERNAME}/user-service:latest
-    container_name: user-service
-    env_file:
-      - .env
-    environment:
-      - PROD_HOST=${PROD_HOST}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    ports:
-      - "8080:8080"
-    depends_on:
-      codenavi-db:
-        condition: service_healthy
+    volumes:
+      - mysql_data:/var/lib/mysql
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
 
 volumes:
   mysql_data:
