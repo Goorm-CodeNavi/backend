@@ -4,7 +4,7 @@ server:
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/codenavi-db
-    username: user
+    username: root
     password: 1234
 
   jpa:
