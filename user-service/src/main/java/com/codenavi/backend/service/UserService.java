@@ -9,20 +9,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 사용자 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
- */
 @Service
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * 사용자 이름을 기반으로 사용자 정보를 조회하고 DTO로 변환하여 반환합니다.
-     * @param username 조회할 사용자의 이름
-     * @return UserProfileResponse DTO
-     */
+    // 유저 프로필 정보 가져오기
     @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
@@ -31,12 +24,7 @@ public class UserService {
         return UserProfileResponse.fromUser(user);
     }
 
-    /**
-     * 사용자 프로필 정보를 갱신합니다.
-     * @param username 수정할 사용자의 이름
-     * @param updateRequest 수정할 프로필 정보가 담긴 DTO
-     * @return 갱신된 사용자 정보 DTO
-     */
+    // 유저 프로필 정보 업데이트
     @Transactional
     public UserProfileResponse updateUserProfile(String username, UserUpdateRequest updateRequest) {
         // 1. DB에서 현재 사용자 정보를 가져옵니다.

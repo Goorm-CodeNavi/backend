@@ -1,11 +1,12 @@
 package com.codenavi.backend.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 public class JwtResponse {
-    private String accessToken;
-    private String tokenType = "Bearer";
+    private final String accessToken;
+    private final String tokenType = "Bearer";
 
     public JwtResponse(String accessToken) {
         this.accessToken = accessToken;

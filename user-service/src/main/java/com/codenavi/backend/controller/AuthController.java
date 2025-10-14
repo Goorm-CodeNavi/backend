@@ -1,64 +1,90 @@
 package com.codenavi.backend.controller;
 
+import com.codenavi.backend.dto.*;
 import com.codenavi.backend.domain.User;
-import com.codenavi.backend.dto.JwtResponse;
-import com.codenavi.backend.dto.LoginRequest;
-import com.codenavi.backend.dto.SignUpRequest;
 import com.codenavi.backend.jwt.JwtTokenProvider;
 import com.codenavi.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.codenavi.backend.service.EmailService;
+import com.codenavi.backend.service.VerificationService;
+import lombok.RequiredArgsConstructor; // 생성자 주입을 위한 Lombok 어노테이션
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor // final 필드에 대한 생성자를 자동으로 만들어줍니다.
 public class AuthController {
+    // 의존성을 final로 선언하여 불변성 확보
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider tokenProvider;
+    private final EmailService emailService;
+    private final VerificationService verificationService;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Autowired
-    JwtTokenProvider tokenProvider;
-
+    // 로그인
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<?>> authenticateUser(@RequestBody LoginRequest loginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(),
-                        loginRequest.getPassword()
-                )
-        );
+        if (loginRequest.getUsername() == null || loginRequest.getUsername().isBlank() ||
+                loginRequest.getPassword() == null || loginRequest.getPassword().isBlank()) {
+            return ResponseEntity
+                    .badRequest() // 400 Bad Request
+                    .body(ApiResponse.onFailure("COMMON400", "잘못된 요청입니다.", "아이디와 비밀번호를 모두 입력해주세요."));
+        }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            // --- 인증 시도 ---
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-        String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtResponse(jwt));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = tokenProvider.generateToken(authentication);
+
+            // --- 성공 응답 ---
+            return ResponseEntity.ok(ApiResponse.onSuccess(new JwtResponse(jwt)));
+
+        } catch (AuthenticationException e) {
+            // --- 상황 2: 인증 실패 (아이디 또는 비밀번호 불일치) ---
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED) // 401 Unauthorized
+                    .body(ApiResponse.onFailure("LOGIN4001", "로그인에 실패했습니다.", "아이디 또는 비밀번호를 확인해주세요."));
+        }
     }
 
+    // 회원 가입
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<ApiResponse<String>> registerUser(@RequestBody SignUpRequest signUpRequest) {
+        if (signUpRequest.getPassword().length() < 8) {
+            return ResponseEntity
+                    .badRequest() // 400 상태 코드
+                    .body(ApiResponse.onFailure("SIGNUP4000", "비밀번호는 8자 이상이어야 합니다.", "입력값을 확인해주세요."));
+        }
+
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
+            // 409 Conflict 상태 코드와 ApiResponse 포맷으로 실패 응답
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.onFailure("SIGNUP4091", "이미 사용 중인 아이디입니다.", null));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return new ResponseEntity<>("Email Address already in use!", HttpStatus.BAD_REQUEST);
+            // 409 Conflict 상태 코드와 ApiResponse 포맷으로 실패 응답
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.onFailure("SIGNUP4092", "이미 사용 중인 이메일입니다.", null));
         }
 
         // Creating user's account
@@ -70,6 +96,65 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+        // 201 Created 상태 코드와 ApiResponse 포맷으로 성공 응답
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.onSuccess("회원가입에 성공했습니다."));
+    }
+
+    // 아이디 중복 체크
+    @GetMapping("/check-id")
+    public ResponseEntity<ApiResponse<String>> checkUsername(@RequestParam("username") String username) {
+
+        if (userRepository.existsByUsername(username)) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.onFailure("AUTH4091", "이미 사용 중인 아이디입니다.", null));
+        } else {
+            return ResponseEntity.ok(ApiResponse.onSuccess("사용 가능한 아이디입니다."));
+        }
+    }
+
+    // 아이디 찾기 - 이메일 인증
+    @PostMapping("/find-id/send-code")
+    public ResponseEntity<ApiResponse<String>> sendVerificationCodeForId(@RequestBody EmailRequest emailRequest) {
+        String email = emailRequest.getEmail();
+
+        // 인증번호 생성 및 저장
+        String code = verificationService.generateCode();
+        verificationService.saveCode(email, code);
+
+        // 이메일 발송
+        emailService.sendVerificationCode(email, code);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess("인증번호가 성공적으로 발송되었습니다."));
+    }
+
+    // 아이디찾기-코드인증
+    @PostMapping("/find-id/verify-code")
+    public ResponseEntity<ApiResponse<?>> verifyCodeAndFindId(@RequestBody IdVerificationRequest verificationRequest) {
+        String email = verificationRequest.getEmail();
+        String code = verificationRequest.getCode();
+
+        // 1. 코드 검증
+        boolean isVerified = verificationService.verifyCode(email, code);
+
+        if (!isVerified) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.onFailure("AUTH400_VERIFY", "인증번호가 일치하지 않거나 만료되었습니다.", null));
+        }
+
+        // 2. 사용자 조회 및 아이디(username) 반환
+        User user = userRepository.findByEmail(email)
+                .orElse(null); // 위에서 존재 여부를 확인했으므로 거의 항상 존재함
+
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("USER404", "해당 이메일로 가입된 사용자를 찾을 수 없습니다.", null));
+        }
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(new UsernameResponse(user.getUsername())));
     }
 }
