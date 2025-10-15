@@ -6,6 +6,7 @@ import com.codenavi.backend.jwt.JwtTokenProvider;
 import com.codenavi.backend.repository.UserRepository;
 import com.codenavi.backend.service.EmailService;
 import com.codenavi.backend.service.VerificationService;
+import com.codenavi.backend.service.UserService;
 import lombok.RequiredArgsConstructor; // 생성자 주입을 위한 Lombok 어노테이션
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class AuthController {
     private final JwtTokenProvider tokenProvider;
     private final EmailService emailService;
     private final VerificationService verificationService;
+    private final UserService userService;
 
 
     // 로그인
@@ -142,19 +144,22 @@ public class AuthController {
         if (!isVerified) {
             return ResponseEntity
                     .badRequest()
-                    .body(ApiResponse.onFailure("AUTH400_VERIFY", "인증번호가 일치하지 않거나 만료되었습니다.", null));
+                    .body(ApiResponse.onFailure("AUTH4001", "인증에 실패했습니다.", "인증번호가 올바르지 않거나 만료되었습니다."));
         }
 
         // 2. 사용자 조회 및 아이디(username) 반환
         User user = userRepository.findByEmail(email)
-                .orElse(null); // 위에서 존재 여부를 확인했으므로 거의 항상 존재함
-
-        if (user == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.onFailure("USER404", "해당 이메일로 가입된 사용자를 찾을 수 없습니다.", null));
-        }
+                .orElseThrow(() -> new RuntimeException("인증 후 사용자를 찾을 수 없음"));
 
         return ResponseEntity.ok(ApiResponse.onSuccess(new UsernameResponse(user.getUsername())));
+    }
+
+    // 임시 비밀번호 발급
+    @PostMapping("/reset-password/issue-temporary")
+    public ResponseEntity<ApiResponse<String>> issueTemporaryPassword(@RequestBody PasswordResetRequest request) {
+        userService.issueTemporaryPassword(request.getUsername(), request.getEmail());
+
+        // 사용자가 존재하든 안하든 항상 동일한 성공 메시지를 보내 보안을 강화합니다.
+        return ResponseEntity.ok(ApiResponse.onSuccess("입력하신 이메일로 임시 비밀번호가 발송되었습니다. 이메일 수신함을 확인해주세요."));
     }
 }

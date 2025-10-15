@@ -1,9 +1,11 @@
 package com.codenavi.backend.controller;
 
 import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.PasswordChangeRequest;
 import com.codenavi.backend.dto.UserProfileResponse;
 import com.codenavi.backend.dto.UserUpdateRequest;
 import com.codenavi.backend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,6 +39,24 @@ public class UserController {
         // 성공 응답(200 OK)과 함께 갱신된 정보를 반환합니다.
         return ResponseEntity.ok(ApiResponse.onSuccess(updatedProfile));
     }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<ApiResponse<String>> updateCurrentUserPassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody PasswordChangeRequest request) {
+
+        try {
+            userService.changePassword(userDetails.getUsername(), request);
+            return ResponseEntity.ok(ApiResponse.onSuccess("비밀번호가 성공적으로 변경되었습니다."));
+        } catch (IllegalArgumentException e) {
+            // Service에서 던진 예외를 잡아서 400 에러로 응답
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.onFailure("USER4001", e.getMessage(), null));
+        }
+    }
+
+
 
 }
 

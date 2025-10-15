@@ -8,10 +8,6 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/codenavi-db?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     username: root
-<<<<<<< HEAD
-
-=======
->>>>>>> 7f631c7 (feat: ✨  로그인, 회원가입,내 정보 조회 기능 구현 (#3))
 
 
   jpa:
@@ -21,8 +17,8 @@ spring:
       show-sql: true
       format-sql: true
     hibernate:
-      # ddl-auto: create-drop
-      ddl-auto: update
+      ddl-auto: create-drop
+      # ddl-auto: update
 
   autoconfigure:
     exclude:

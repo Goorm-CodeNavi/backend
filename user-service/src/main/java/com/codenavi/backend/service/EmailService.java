@@ -19,4 +19,14 @@ public class EmailService {
         message.setText("인증번호는 [" + code + "] 입니다.");
         mailSender.send(message);
     }
+
+    // 임시 비밀번호 발송 메소드
+    public void sendTemporaryPassword(String toEmail, String temporaryPassword) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("[CodeNavi] 임시 비밀번호 안내");
+        message.setText("로그인을 위한 임시 비밀번호입니다. 로그인 후 반드시 비밀번호를 변경해주세요.\n" +
+                "임시 비밀번호: [" + temporaryPassword + "]");
+        mailSender.send(message);
+    }
 }

@@ -25,16 +25,16 @@ public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "_id")
-    private Long id;
+    private Long id;// id
 
     @Column(nullable = false)
-    private String title;
+    private String title; // 문제 제목
 
     @Column(unique = true, nullable = false)
-    private String slug;
+    private String number; // 문제 번호
 
     @Embedded
-    private Description description;
+    private Description description; //
 
     @Embedded
     private Metadata metadata;
@@ -57,11 +57,11 @@ public class Problem {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // 생성 일자
 
     @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt; // 업데이트 일자
 
     // Relationships
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -70,9 +70,6 @@ public class Problem {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProblemTag> problemTags = new ArrayList<>();
 
-
-    // --- Inner Embeddable Classes ---
-
     @Embeddable
     @Getter
     @Setter
@@ -80,7 +77,7 @@ public class Problem {
     public static class Description {
         @Lob
         @Column(name = "desc_content")
-        private String content; // Markdown
+        private String content; // 문제 설명
 
         @JdbcTypeCode(SqlTypes.JSON)
         @Column(name = "desc_examples")
