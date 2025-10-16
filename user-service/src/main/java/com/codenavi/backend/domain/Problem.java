@@ -25,35 +25,25 @@ public class Problem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "_id")
-    private Long id;// id
-
-    @Column(nullable = false)
-    private String title; // 문제 제목
+    private Long id;
 
     @Column(unique = true, nullable = false)
     private String number; // 문제 번호
 
-    @Embedded
-    private Description description; //
+    @Column(nullable = false)
+    private String title; // 문제 제목
 
     @Embedded
-    private Metadata metadata;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "problem_test_cases", joinColumns = @JoinColumn(name = "problem_id"))
-    private List<TestCase> testCases = new ArrayList<>();
+    private Description description; // 문제 내용, 입력, 출력 설명
 
     @Embedded
-    private Statistics statistics;
+    private Metadata metadata; // 카테고리
 
     @Embedded
-    private Author author;
+    private Author author; // 출제자 정보
 
     @Embedded
-    private Editorial editorial;
-
-    @Embedded
-    private Status status;
+    private Editorial editorial; //문제 요약, 해결 전략 및 접근법, 시간/공간 복잡도 분석, 의사코드
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -70,6 +60,9 @@ public class Problem {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProblemTag> problemTags = new ArrayList<>();
 
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestCase> testCases = new ArrayList<>();
+
     @Embeddable
     @Getter
     @Setter
@@ -77,15 +70,15 @@ public class Problem {
     public static class Description {
         @Lob
         @Column(name = "desc_content")
-        private String content; // 문제 설명
+        private String content; // 문제 설명 (핵심 내용)
 
-        @JdbcTypeCode(SqlTypes.JSON)
-        @Column(name = "desc_examples")
-        private List<String> examples;
+        @Lob
+        @Column(name = "desc_input")
+        private String inputDescription; // 입력 설명 (제약조건 포함)
 
-        @JdbcTypeCode(SqlTypes.JSON)
-        @Column(name = "desc_constraints")
-        private List<String> constraints;
+        @Lob
+        @Column(name = "desc_output")
+        private String outputDescription; // 출력 설명
     }
 
     @Embeddable
@@ -93,53 +86,8 @@ public class Problem {
     @Setter
     @NoArgsConstructor
     public static class Metadata {
-        @Column(name = "meta_difficulty")
-        private String difficulty;
-
         @Column(name = "meta_category")
-        private String category;
-
-        @JdbcTypeCode(SqlTypes.JSON)
-        @Column(name = "meta_tags")
-        private List<String> tags;
-
-        @Column(name = "meta_estimated_time")
-        private Integer estimatedTime;
-    }
-
-    @Embeddable
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class TestCase {
-        @Lob
-        @Column(name = "case_input")
-        private String input;
-
-        @Lob
-        @Column(name = "case_expected_output")
-        private String expectedOutput;
-
-        @Column(name = "case_is_public")
-        private boolean isPublic;
-
-        @Column(name = "case_time_limit")
-        private Integer timeLimit;
-    }
-
-    @Embeddable
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Statistics {
-        @Column(name = "stats_total_submissions")
-        private Integer totalSubmissions;
-
-        @Column(name = "stats_acceptance_rate")
-        private Double acceptanceRate;
-
-        @Column(name = "stats_average_time_spent")
-        private Long averageTimeSpent;
+        private String category; // 카테고리
     }
 
     @Embeddable
@@ -148,13 +96,13 @@ public class Problem {
     @NoArgsConstructor
     public static class Author {
         @Column(name = "author_user_id")
-        private Long userId;
+        private Long userId; // 출제자 id
 
         @Column(name = "author_name")
-        private String name;
+        private String name; // 출제자 이름
 
         @Column(name = "author_is_official")
-        private boolean isOfficial;
+        private boolean isOfficial; // 공식 여부
     }
 
     @Embeddable
@@ -162,25 +110,38 @@ public class Problem {
     @Setter
     @NoArgsConstructor
     public static class Editorial {
-        @JdbcTypeCode(SqlTypes.JSON)
-        @Column(name = "edit_approaches")
-        private List<String> approaches;
+        @Lob
+        @Column(name = "ai_summary")
+        private String summary; // AI가 생성한 '문제 요약'
 
         @Lob
-        @Column(name = "edit_explanations")
-        private String explanations;
+        @Column(name = "ai_strategy")
+        private String strategy; // AI가 생성한 '해결 전략 및 접근법'
+
+        @Embedded
+        private Complexity complexity; // AI가 분석한 '시간/공간 복잡도'
+
+        @Lob
+        @Column(name = "ai_pseudocode")
+        private String pseudocode; // AI가 생성한 '의사코드'
+
+        // AI의 모범 답안 코드도 추가할 수 있습니다.
+//        @Lob
+//        @Column(name = "ai_solution_code")
+//        private String solutionCode;
     }
 
+
+    // AI와 사용자의 복잡도 클래스는 재사용할 수 있습니다.
     @Embeddable
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class Status {
-        @Column(name = "status_is_published")
-        private boolean isPublished;
+    public static class Complexity {
+        @Column(name = "comp_time")
+        private String time;
 
-        @Column(name = "status_review_status")
-        private String reviewStatus;
+        @Column(name = "comp_space")
+        private String space;
     }
 }
-

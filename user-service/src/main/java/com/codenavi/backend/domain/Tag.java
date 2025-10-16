@@ -20,17 +20,16 @@ public class Tag extends BaseTimeEntity {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String name;
+    private String name; // 영문 이름, 태그용
 
     @Column(name = "display_name")
-    private String displayName;
+    private String displayName; // 표시용 이름
 
-    private String description;
-    private String category;
-    private String color;
+    private String description; // 설명
+    private String color; // 색상코드
 
-    @Column(name = "usage_count")
-    private Integer usageCount;
+//    @Column(name = "usage_count")
+//    private Integer usageCount;
 
     @Column(name = "is_active")
     private boolean isActive;

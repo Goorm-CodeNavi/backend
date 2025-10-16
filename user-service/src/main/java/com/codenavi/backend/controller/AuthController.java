@@ -107,6 +107,11 @@ public class AuthController {
     // 아이디 중복 체크
     @GetMapping("/check-id")
     public ResponseEntity<ApiResponse<String>> checkUsername(@RequestParam("username") String username) {
+        if (username == null || username.isBlank()) {
+            return ResponseEntity
+                    .badRequest() // 400 Bad Request
+                    .body(ApiResponse.onFailure("COMMON400", "잘못된 요청입니다.", "아이디를 입력해주세요."));
+        }
 
         if (userRepository.existsByUsername(username)) {
             return ResponseEntity
@@ -122,11 +127,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> sendVerificationCodeForId(@RequestBody EmailRequest emailRequest) {
         String email = emailRequest.getEmail();
 
-        // 인증번호 생성 및 저장
+        if (!userRepository.existsByEmail(email)) {
+            return ResponseEntity.ok(ApiResponse.onSuccess("인증번호가 발송되었습니다. 이메일 수신함을 확인해주세요."));
+        }
+
         String code = verificationService.generateCode();
         verificationService.saveCode(email, code);
-
-        // 이메일 발송
         emailService.sendVerificationCode(email, code);
 
         return ResponseEntity.ok(ApiResponse.onSuccess("인증번호가 성공적으로 발송되었습니다."));
@@ -138,7 +144,6 @@ public class AuthController {
         String email = verificationRequest.getEmail();
         String code = verificationRequest.getCode();
 
-        // 1. 코드 검증
         boolean isVerified = verificationService.verifyCode(email, code);
 
         if (!isVerified) {
@@ -147,7 +152,6 @@ public class AuthController {
                     .body(ApiResponse.onFailure("AUTH4001", "인증에 실패했습니다.", "인증번호가 올바르지 않거나 만료되었습니다."));
         }
 
-        // 2. 사용자 조회 및 아이디(username) 반환
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("인증 후 사용자를 찾을 수 없음"));
 

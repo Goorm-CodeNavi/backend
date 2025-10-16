@@ -29,7 +29,7 @@ public class ProblemTag {
     @JoinColumn(name = "tag_id", nullable = false)
     private Tag tag;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+//    @CreatedDate
+//    @Column(name = "created_at", nullable = false, updatable = false)
+//    private LocalDateTime createdAt;
 }
