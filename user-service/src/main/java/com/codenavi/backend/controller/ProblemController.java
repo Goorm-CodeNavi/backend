@@ -1,5 +1,8 @@
 package com.codenavi.backend.controller;
 
+import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.ProblemListDto;
+import com.codenavi.backend.dto.RecommendedProblemDto;
 import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -14,6 +17,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -66,10 +73,6 @@ public class ProblemController {
         Page<ProblemListDto> problemPage = problemService.getProblemList(pageable, category, tags, query);
         return ResponseEntity.ok(ApiResponse.onSuccess(problemPage));
     }
-
-    /**
-     * 추천 문제 조회 API
-     */
     @GetMapping("/recommended")
     public ResponseEntity<ApiResponse<?>> getRecommendedProblem(Authentication authentication) {
         String username = authentication.getName();
