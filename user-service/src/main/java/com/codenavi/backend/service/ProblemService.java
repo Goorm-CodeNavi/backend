@@ -4,6 +4,10 @@ import com.codenavi.backend.client.Judge0Client;
 import com.codenavi.backend.domain.Problem;
 import com.codenavi.backend.domain.TestCase;
 import com.codenavi.backend.domain.User;
+import com.codenavi.backend.dto.ProblemDetailDto;
+import com.codenavi.backend.dto.ProblemListDto;
+import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.dto.AiEditorialDto;
 import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
@@ -82,6 +86,14 @@ public class ProblemService {
     }
 
 
+    public ProblemDetailDto getProblemDetail(String problemNumber) {
+        Problem problem = problemRepository.findByNumber(problemNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 번호의 문제를 찾을 수 없습니다."));
+
+        return ProblemDetailDto.from(problem);
+    }
+
+
     public Page<ProblemListDto> getProblemList(Pageable pageable, String category, List<String> tags, String query) {
         Page<Problem> problems = problemRepository.findProblemsWithFilters(pageable, category, tags, query);
         return problems.map(ProblemListDto::from);
@@ -124,3 +136,4 @@ public class ProblemService {
         }
     }
 }
+

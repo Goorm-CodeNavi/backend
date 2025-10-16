@@ -1,8 +1,5 @@
 package com.codenavi.backend.controller;
 
-import com.codenavi.backend.dto.ApiResponse;
-import com.codenavi.backend.dto.ProblemListDto;
-import com.codenavi.backend.dto.RecommendedProblemDto;
 import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -19,15 +16,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -37,6 +30,7 @@ import java.util.List;
  * '문제(Problem)'와 관련된 API 요청을 처리하는 컨트롤러입니다.
  * (문제 리스트/상세/추천/해설 조회, 코드 실행, 풀이 생성)
  */
+@Tag(name = "Problem", description = "문제 관련 API")
 @RestController
 @RequestMapping("/api/problems")
 @RequiredArgsConstructor
@@ -66,7 +60,6 @@ public class ProblemController {
                     .status(HttpStatus.CREATED)
                     .body(ApiResponse.onSuccess(new CreateSolutionDto.Response(newSolutionId)));
         } catch (ResourceNotFoundException e) {
-            // Service에서 "문제를 찾을 수 없음" 예외가 발생하면 404 응답을 반환합니다.
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
@@ -76,10 +69,22 @@ public class ProblemController {
     @Operation(summary = "문제 리스트 조회", description = "페이지네이션, 필터링, 검색을 지원하는 문제 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblemList(
-            @Parameter(description = "페이지 번호 (0부터 시작)") @PageableDefault(size = 10) Pageable pageable,
-            @Parameter(description = "카테고리 필터 (예: 알고리즘)") @RequestParam(required = false) String category,
-            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)") @RequestParam(required = false) List<String> tags,
-            @Parameter(description = "문제 제목 검색어") @RequestParam(required = false) String query) {
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "한 페이지당 데이터 개수", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+
+            @Parameter(description = "카테고리 필터 (예: 알고리즘)")
+            @RequestParam(required = false) String category,
+
+            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)")
+            @RequestParam(required = false) List<String> tags,
+
+            @Parameter(description = "문제 제목 검색어")
+            @RequestParam(required = false) String query
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
         Page<ProblemListDto> problemPage = problemService.getProblemList(pageable, category, tags, query);
         return ResponseEntity.ok(ApiResponse.onSuccess(problemPage));
     }
