@@ -1,8 +1,10 @@
 package com.codenavi.backend.controller;
 
 import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,10 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,10 +24,19 @@ public class ProblemController {
 
     private final ProblemService problemService;
 
-    /**
-     * 문제 리스트를 동적 필터링 및 페이지네이션하여 조회합니다.
-     * GET /api/problems
-     */
+    @GetMapping("/{problemNumber}")
+    public ResponseEntity<ApiResponse<?>> getProblemDetail(@PathVariable String problemNumber) {
+        try {
+            ProblemDetailDto problemDetail = problemService.getProblemDetail(problemNumber);
+            return ResponseEntity.ok(ApiResponse.onSuccess(problemDetail));
+        } catch (ResourceNotFoundException e) {
+            // Service에서 예외가 발생하면 404 응답을 반환합니다.
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+        }
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblemList(
             @PageableDefault(size = 10) Pageable pageable,

@@ -2,8 +2,10 @@ package com.codenavi.backend.service;
 
 import com.codenavi.backend.domain.Problem;
 import com.codenavi.backend.domain.User;
+import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.repository.ProblemRepository;
 import com.codenavi.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +25,14 @@ public class ProblemService {
 
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
-    /**
-     * 필터링 조건에 맞는 문제 목록을 조회하고, DTO로 변환하여 반환합니다.
-     */
+
+    public ProblemDetailDto getProblemDetail(String problemNumber) {
+        Problem problem = problemRepository.findByNumber(problemNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 번호의 문제를 찾을 수 없습니다."));
+
+        return ProblemDetailDto.from(problem);
+    }
+
     public Page<ProblemListDto> getProblemList(Pageable pageable, String category, List<String> tags, String query) {
         Page<Problem> problems = problemRepository.findProblemsWithFilters(pageable, category, tags, query);
         return problems.map(ProblemListDto::from);
