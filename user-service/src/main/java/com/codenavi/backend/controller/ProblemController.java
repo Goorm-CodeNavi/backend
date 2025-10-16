@@ -1,12 +1,9 @@
 package com.codenavi.backend.controller;
 
 import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
-import com.codenavi.backend.dto.*;
-import com.codenavi.backend.exception.CodeCompilationException;
-import com.codenavi.backend.exception.CodeRuntimeException;
-import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import com.codenavi.backend.service.SolutionService;
 import jakarta.validation.Valid;
@@ -21,8 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -64,22 +59,39 @@ public class ProblemController {
     /**
      * 문제 리스트 조회 API
      */
+    @GetMapping("/{problemNumber}")
+    public ResponseEntity<ApiResponse<?>> getProblemDetail(@PathVariable String problemNumber) {
+        try {
+            ProblemDetailDto problemDetail = problemService.getProblemDetail(problemNumber);
+            return ResponseEntity.ok(ApiResponse.onSuccess(problemDetail));
+        } catch (ResourceNotFoundException e) {
+            // Service에서 예외가 발생하면 404 응답을 반환합니다.
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+        }
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblemList(
             @PageableDefault(size = 10) Pageable pageable,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) List<String> tags,
             @RequestParam(required = false) String query) {
+
         Page<ProblemListDto> problemPage = problemService.getProblemList(pageable, category, tags, query);
         return ResponseEntity.ok(ApiResponse.onSuccess(problemPage));
     }
     @GetMapping("/recommended")
     public ResponseEntity<ApiResponse<?>> getRecommendedProblem(Authentication authentication) {
+        // JWT 토큰에서 사용자 이름(username)을 가져옵니다.
         String username = authentication.getName();
+
         try {
             RecommendedProblemDto recommendedProblem = problemService.recommendProblemForUser(username);
             return ResponseEntity.ok(ApiResponse.onSuccess(recommendedProblem));
         } catch (RuntimeException e) {
+            // 서비스에서 "추천할 문제가 없습니다" 예외가 발생한 경우
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
@@ -158,4 +170,3 @@ public class ProblemController {
         }
     }
 }
-
