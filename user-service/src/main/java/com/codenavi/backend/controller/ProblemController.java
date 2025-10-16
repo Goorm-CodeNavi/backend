@@ -1,5 +1,8 @@
 package com.codenavi.backend.controller;
 
+import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.ProblemListDto;
+import com.codenavi.backend.dto.RecommendedProblemDto;
 import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -21,6 +24,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -30,7 +37,6 @@ import java.util.List;
  * '문제(Problem)'와 관련된 API 요청을 처리하는 컨트롤러입니다.
  * (문제 리스트/상세/추천/해설 조회, 코드 실행, 풀이 생성)
  */
-@Tag(name = "Problem", description = "문제 관련 API")
 @RestController
 @RequestMapping("/api/problems")
 @RequiredArgsConstructor
@@ -60,6 +66,7 @@ public class ProblemController {
                     .status(HttpStatus.CREATED)
                     .body(ApiResponse.onSuccess(new CreateSolutionDto.Response(newSolutionId)));
         } catch (ResourceNotFoundException e) {
+            // Service에서 "문제를 찾을 수 없음" 예외가 발생하면 404 응답을 반환합니다.
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
