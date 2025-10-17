@@ -4,6 +4,7 @@ import com.codenavi.backend.dto.ApiResponse;
 import com.codenavi.backend.dto.CodeExecutionDto;
 import com.codenavi.backend.dto.CodeSubmissionDto;
 import com.codenavi.backend.dto.SolutionDetailDto;
+import com.codenavi.backend.dto.CreateSolutionDto;
 import com.codenavi.backend.dto.ThinkingCanvasDto;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -44,6 +45,27 @@ public class SolutionController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 풀이 ID")
     })
     @PostMapping("/{solutionId}/canvas")
+    /**
+     * [신규] 풀이 생성 및 사고 과정 최초 저장
+     */
+    @PostMapping("/problems/{solutionId}/solutions")
+    public ResponseEntity<ApiResponse<?>> createSolutionWithCanvas(
+            @PathVariable String solutionId,
+            @RequestBody CreateSolutionDto.Request request,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+        Long newSolutionId = solutionService.createSolutionWithCanvas(solutionId, username, request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.onSuccess(new CreateSolutionDto.Response(newSolutionId)));
+    }
+
+    /**
+     * [기존] 사고 과정 수정 (업데이트)
+     */
+    @PostMapping("/solutions/{solutionId}/canvas")
     public ResponseEntity<ApiResponse<?>> updateThinkingCanvas(
             @Parameter(description = "수정할 풀이의 ID") @PathVariable Long solutionId,
             @RequestBody ThinkingCanvasDto.Request request,

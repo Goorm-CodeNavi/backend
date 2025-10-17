@@ -4,6 +4,7 @@ import com.codenavi.backend.client.Judge0Client;
 import com.codenavi.backend.domain.Problem;
 import com.codenavi.backend.domain.TestCase;
 import com.codenavi.backend.domain.User;
+import com.codenavi.backend.dto.AiEditorialDto;
 import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
