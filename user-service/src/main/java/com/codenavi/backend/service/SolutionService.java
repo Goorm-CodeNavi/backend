@@ -5,6 +5,7 @@ import com.codenavi.backend.domain.Solution;
 import com.codenavi.backend.domain.ThinkingProcess;
 import com.codenavi.backend.domain.User;
 import com.codenavi.backend.dto.CreateSolutionDto;
+import com.codenavi.backend.dto.SolutionDetailDto;
 import com.codenavi.backend.dto.SolutionHistoryDto;
 import com.codenavi.backend.dto.ThinkingCanvasDto;
 import com.codenavi.backend.exception.ResourceNotFoundException;
@@ -19,8 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-import java.time.LocalDateTime; // LocalDateTime import 추가
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -30,20 +30,6 @@ public class SolutionService {
     private final UserRepository userRepository;
     private final ProblemRepository problemRepository;
 
-    /**
-     * 특정 사용자의 제출 기록 목록을 조회합니다.
-     */
-    @Transactional(readOnly = true)
-    public Page<SolutionHistoryDto> getSolutionHistoryForUser(String username, Pageable pageable) {
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
-        Page<Solution> solutionPage = solutionRepository.findByUserOrderByCreatedAtDesc(currentUser, pageable);
-        return solutionPage.map(SolutionHistoryDto::from);
-    }
-
-    /**
-     * 새로운 풀이와 사고 과정을 생성하고, 생성된 solutionId를 반환합니다.
-     */
     @Transactional
     public Long createSolutionWithCanvas(String problemNumber, String username, CreateSolutionDto.Request request) {
         User currentUser = userRepository.findByUsername(username)
@@ -56,9 +42,22 @@ public class SolutionService {
         newSolution.setUser(currentUser);
         newSolution.setProblem(problem);
 
+        Solution.Status status = new Solution.Status();
+        status.setCurrentStatus("풀이 중");
+        status.setCorrect(false);
+        newSolution.setStatus(status);
+
+        // --- 👇 수정된 부분 ---
+        // Implementation 객체를 생성하고 필드를 기본값으로 초기화합니다.
+        Solution.Implementation implementation = new Solution.Implementation();
+        implementation.setLanguage(""); // null 대신 빈 문자열로 초기화
+        implementation.setCode("");     // null 대신 빈 문자열로 초기화
+        implementation.setImplementationTime(0L); // 0으로 초기화
+        newSolution.setImplementation(implementation);
+        // -------------------
+
         ThinkingProcess thinkingProcess = new ThinkingProcess();
-        // Call the new core helper method
-        updateThinkingProcessCore(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(), request.getComplexityAnalysis(), request.getPseudocode());
+        updateThinkingProcessFromDto(thinkingProcess, request); // 생성용 헬퍼 호출
         thinkingProcess.setSolution(newSolution);
         newSolution.setThinkingProcess(thinkingProcess);
 
@@ -68,9 +67,6 @@ public class SolutionService {
         return savedSolution.getId();
     }
 
-    /**
-     * 기존 풀이의 사고 과정 캔버스 내용을 업데이트합니다.
-     */
     @Transactional
     public void updateThinkingCanvas(Long solutionId, String username, ThinkingCanvasDto.Request request) {
         User currentUser = userRepository.findByUsername(username)
@@ -90,20 +86,59 @@ public class SolutionService {
             solution.setThinkingProcess(thinkingProcess);
         }
 
-        // Call the new core helper method
-        updateThinkingProcessCore(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(), request.getComplexityAnalysis(), request.getPseudocode());
+        updateThinkingProcessFromDto(thinkingProcess, request); // 수정용 헬퍼 호출
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SolutionHistoryDto> getSolutionHistoryForUser(String username, Pageable pageable) {
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+
+        Page<Solution> solutionPage = solutionRepository.findByUserOrderByCreatedAtDesc(currentUser, pageable);
+
+        return solutionPage.map(SolutionHistoryDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public SolutionDetailDto getSolutionDetail(Long solutionId, String username) {
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+
+        Solution solution = solutionRepository.findById(solutionId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 제출 기록을 찾을 수 없습니다."));
+
+        if (!solution.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("자신의 제출 기록만 조회할 수 있습니다.");
+        }
+
+        return SolutionDetailDto.from(solution);
     }
 
     /**
-     * [Core Helper Method] DTO의 내용으로 ThinkingProcess 엔티티를 업데이트하는 중복 로직
+     * [Helper Method for Create] CreateSolutionDto.Request로 ThinkingProcess를 업데이트합니다.
      */
-    private void updateThinkingProcessCore(
-            ThinkingProcess thinkingProcess,
-            String summaryContent,
-            String strategyContent,
-            ThinkingCanvasDto.ComplexityDto complexityDto,
-            String pseudocodeContent
-    ) {
+    private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, CreateSolutionDto.Request request) {
+        // 중앙 로직 호출
+        updateThinkingProcessLogic(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(),
+                request.getComplexityAnalysis(), request.getPseudocode());
+    }
+
+    /**
+     * [Helper Method for Update] ThinkingCanvasDto.Request로 ThinkingProcess를 업데이트합니다. (Overloading)
+     */
+    private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, ThinkingCanvasDto.Request request) {
+        // 중앙 로직 호출
+        updateThinkingProcessLogic(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(),
+                request.getComplexityAnalysis(), request.getPseudocode());
+    }
+
+    /**
+     * [Central Logic] 두 DTO의 공통 로직을 처리하는 중앙 메소드입니다.
+     */
+    private void updateThinkingProcessLogic(ThinkingProcess thinkingProcess, String summaryContent,
+                                            String strategyContent, ThinkingCanvasDto.ComplexityDto complexityDto,
+                                            String pseudocodeContent) {
+
         ThinkingProcess.ProblemSummary summary = new ThinkingProcess.ProblemSummary();
         summary.setContent(summaryContent);
         thinkingProcess.setProblemSummary(summary);
@@ -124,3 +159,4 @@ public class SolutionService {
         thinkingProcess.setPseudocode(pseudocode);
     }
 }
+

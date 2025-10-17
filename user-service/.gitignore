@@ -164,8 +164,12 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,intellij,java
-
 # QueryDSL generated Q-types
-# IntelliJ 기본 경로
-/build
+# Android Studio/IntelliJ
+.idea/
+.gradle/
+*.iml
+build/
+local.properties
+
+# End of https://www.toptal.com/developers/gitignore/api/macos,intellij,java

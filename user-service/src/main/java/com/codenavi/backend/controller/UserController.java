@@ -65,7 +65,6 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> getMySubmissions(
             Authentication authentication,
             @PageableDefault(size = 10) Pageable pageable) {
-
         // JWT 토큰에서 현재 로그인한 사용자의 이름(username)을 가져옵니다.
         String username = authentication.getName();
 
