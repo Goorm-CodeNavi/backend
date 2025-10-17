@@ -2,6 +2,7 @@ package com.codenavi.backend.service;
 
 import com.codenavi.backend.domain.Problem;
 import com.codenavi.backend.domain.User;
+import com.codenavi.backend.dto.AiEditorialDto;
 import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
@@ -57,5 +58,11 @@ public class ProblemService {
 
         // 5. DTO로 변환하여 반환
         return RecommendedProblemDto.from(recommendedProblem);
+    }
+    public AiEditorialDto getProblemEditorial(String problemNumber) {
+        Problem problem = problemRepository.findByNumber(problemNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 번호의 문제를 찾을 수 없습니다."));
+
+        return AiEditorialDto.from(problem);
     }
 }

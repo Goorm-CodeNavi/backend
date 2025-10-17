@@ -73,8 +73,5 @@ public class UserController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(historyPage));
     }
-
-
-
 }
 

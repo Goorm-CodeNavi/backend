@@ -1,9 +1,6 @@
 package com.codenavi.backend.controller;
 
-import com.codenavi.backend.dto.ApiResponse;
-import com.codenavi.backend.dto.ProblemDetailDto;
-import com.codenavi.backend.dto.ProblemListDto;
-import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +54,18 @@ public class ProblemController {
             return ResponseEntity.ok(ApiResponse.onSuccess(recommendedProblem));
         } catch (RuntimeException e) {
             // 서비스에서 "추천할 문제가 없습니다" 예외가 발생한 경우
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{problemNumber}/editorial")
+    public ResponseEntity<ApiResponse<?>> getProblemEditorial(@PathVariable String problemNumber) {
+        try {
+            AiEditorialDto editorial = problemService.getProblemEditorial(problemNumber);
+            return ResponseEntity.ok(ApiResponse.onSuccess(editorial));
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));

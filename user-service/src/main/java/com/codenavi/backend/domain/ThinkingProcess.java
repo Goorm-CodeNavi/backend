@@ -8,6 +8,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "thinking_processes")
 public class ThinkingProcess {
     @Id
@@ -84,21 +86,3 @@ public class ThinkingProcess {
         private LocalDateTime completedAt;
     }
 }
-//
-
-
-//
-//@Embeddable
-//@Getter
-//@Setter
-//@NoArgsConstructor
-//public static class ThinkingProcess {
-//    @Embedded
-//    private Solution.ProblemSummary problemSummary; // 문제 요약
-//    @Embedded
-//    private Solution.SolutionStrategy solutionStrategy; // 해결 전략 및 접근법
-//    @Embedded
-//    private Solution.ComplexityAnalysis complexityAnalysis; // 시공간 복잡도 분석
-//    @Embedded
-//    private Solution.Pseudocode pseudocode; // 의사코드
-//}

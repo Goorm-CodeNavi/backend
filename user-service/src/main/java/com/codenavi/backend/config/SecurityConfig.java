@@ -47,8 +47,8 @@ public class SecurityConfig {
 
                         // 2. 인증된 사용자만 접근 가능한 경로
                         .requestMatchers(
-                                "/api/problems/recommended", // 추천 문제는 로그인해야만 볼 수 있음
-                                "/api/users/me"              // 내 정보 조회
+                                "/api/problems/**", // 추천 문제는 로그인해야만 볼 수 있음
+                                "/api/users/me/**"              // 내 정보 조회
                         ).authenticated()
 
                         // 나머지 모든 요청은 인증 필요
