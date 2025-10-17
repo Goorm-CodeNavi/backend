@@ -5,6 +5,7 @@ import com.codenavi.backend.dto.CodeExecutionDto;
 import com.codenavi.backend.dto.CodeSubmissionDto;
 import com.codenavi.backend.dto.SolutionDetailDto;
 import com.codenavi.backend.dto.CreateSolutionDto;
+import com.codenavi.backend.dto.SolutionDetailDto;
 import com.codenavi.backend.dto.ThinkingCanvasDto;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -66,6 +67,30 @@ public class SolutionController {
         }
     }
 
+    @GetMapping("/{solutionId}")
+    public ResponseEntity<ApiResponse<?>> getSolutionDetail(
+            @PathVariable Long solutionId,
+            Authentication authentication) {
+
+        String username = authentication.getName();
+
+        try {
+            SolutionDetailDto solutionDetail = solutionService.getSolutionDetail(solutionId, username);
+            return ResponseEntity.ok(ApiResponse.onSuccess(solutionDetail));
+
+        } catch (ResourceNotFoundException e) {
+            // Service에서 ResourceNotFoundException이 발생하면 404 응답을 반환합니다.
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+
+        } catch (AccessDeniedException e) {
+            // Service에서 AccessDeniedException이 발생하면 403 응답을 반환합니다.
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.onFailure("AUTH4003", "권한이 없습니다.", e.getMessage()));
+        }
+    }
     @GetMapping("/{solutionId}")
     public ResponseEntity<ApiResponse<?>> getSolutionDetail(
             @PathVariable Long solutionId,

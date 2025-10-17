@@ -4,8 +4,12 @@ import com.codenavi.backend.dto.ApiResponse;
 import com.codenavi.backend.dto.ProblemDetailDto;
 import com.codenavi.backend.dto.ProblemListDto;
 import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.dto.*;
+import com.codenavi.backend.exception.CodeCompilationException;
+import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import com.codenavi.backend.service.SolutionService;
+import jakarta.validation.Valid;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -125,6 +129,34 @@ public class ProblemController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{problemNumber}/run")
+    public ResponseEntity<ApiResponse<?>> runCode(
+            @PathVariable String problemNumber,
+            @Valid @RequestBody CodeExecutionDto.Request request,
+            Authentication authentication) {
+        try {
+            List<CodeExecutionDto.Response> results = problemService.runCode(problemNumber, request);
+            return ResponseEntity.ok(ApiResponse.onSuccess(results));
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+
+        } catch (CodeCompilationException e) {
+            // 컴파일 에러 DTO 생성
+            CodeExecutionDto.CompileErrorResponse errorResponse = CodeExecutionDto.CompileErrorResponse.builder()
+                    .errorType("Compile Error")
+                    .errorMessage(e.getCompileErrorMessage())
+                    .build();
+
+            // 422 Unprocessable Entity 응답 반환
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(ApiResponse.onFailure("EXEC4221", "코드를 처리할 수 없습니다.", errorResponse));
         }
     }
 
