@@ -1,5 +1,12 @@
 package com.codenavi.backend.controller;
 
+import com.codenavi.backend.dto.ApiResponse;
+import com.codenavi.backend.dto.ProblemDetailDto;
+import com.codenavi.backend.dto.ProblemListDto;
+import com.codenavi.backend.dto.RecommendedProblemDto;
+import com.codenavi.backend.dto.*;
+import com.codenavi.backend.exception.CodeCompilationException;
+import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -13,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -130,6 +138,37 @@ public class ProblemController {
     }
 
     @Operation(summary = "코드 실행", description = "사용자 코드를 공개 테스트케이스에 대해 실행하고 결과를 즉시 반환합니다.", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/{problemNumber}/run")
+    public ResponseEntity<ApiResponse<?>> runCode(
+            @PathVariable String problemNumber,
+            @Valid @RequestBody CodeExecutionDto.Request request,
+            Authentication authentication) {
+        try {
+            List<CodeExecutionDto.Response> results = problemService.runCode(problemNumber, request);
+            return ResponseEntity.ok(ApiResponse.onSuccess(results));
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
+
+        } catch (CodeCompilationException e) {
+            // 컴파일 에러 DTO 생성
+            CodeExecutionDto.CompileErrorResponse errorResponse = CodeExecutionDto.CompileErrorResponse.builder()
+                    .errorType("Compile Error")
+                    .errorMessage(e.getCompileErrorMessage())
+                    .build();
+
+            // 422 Unprocessable Entity 응답 반환
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(ApiResponse.onFailure("EXEC4221", "코드를 처리할 수 없습니다.", errorResponse));
+        }
+    }
+
+    /**
+     * 코드 실행 API
+     */
     @PostMapping("/{problemNumber}/run")
     public ResponseEntity<ApiResponse<?>> runCode(
             @Parameter(description = "코드를 실행할 문제의 고유 번호", example = "1000") @PathVariable String problemNumber,
