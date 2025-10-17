@@ -1,28 +1,29 @@
 package com.codenavi.backend.service;
 
 import com.codenavi.backend.domain.User;
+import com.codenavi.backend.dto.PasswordChangeRequest;
 import com.codenavi.backend.dto.UserProfileResponse;
 import com.codenavi.backend.dto.UserUpdateRequest;
 import com.codenavi.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Random;
 
-/**
- * 사용자 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
- */
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * 사용자 이름을 기반으로 사용자 정보를 조회하고 DTO로 변환하여 반환합니다.
-     * @param username 조회할 사용자의 이름
-     * @return UserProfileResponse DTO
-     */
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
+
+    // 유저 프로필 정보 가져오기
     @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(String username) {
         User user = userRepository.findByUsername(username)
@@ -31,12 +32,7 @@ public class UserService {
         return UserProfileResponse.fromUser(user);
     }
 
-    /**
-     * 사용자 프로필 정보를 갱신합니다.
-     * @param username 수정할 사용자의 이름
-     * @param updateRequest 수정할 프로필 정보가 담긴 DTO
-     * @return 갱신된 사용자 정보 DTO
-     */
+    // 유저 프로필 정보 업데이트
     @Transactional
     public UserProfileResponse updateUserProfile(String username, UserUpdateRequest updateRequest) {
         // 1. DB에서 현재 사용자 정보를 가져옵니다.
@@ -51,5 +47,51 @@ public class UserService {
 
         // 5. 갱신된 정보를 DTO로 변환하여 반환합니다.
         return UserProfileResponse.fromUser(updatedUser);
+    }
+
+    // 임시 비밀번호 인증된 이메일로 전송
+    @Transactional
+    public void issueTemporaryPassword(String username, String email) {
+        // 아이디와 이메일로 사용자 찾기
+        User user = userRepository.findByUsernameAndEmail(username, email)
+                .orElse(null);
+        if (user == null) {
+            return;
+        }
+        String temporaryPassword = generateRandomPassword();
+        user.setPassword(passwordEncoder.encode(temporaryPassword));
+        userRepository.save(user);
+        emailService.sendTemporaryPassword(email, temporaryPassword);
+    }
+
+    // 임의의 비밀번호 생성을 위한 private 헬퍼 메소드
+    private String generateRandomPassword() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+    // 비밀번호 재설정
+    @Transactional
+    public void changePassword(String username, PasswordChangeRequest request) {
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user); // 변경된 내용 저장
     }
 }

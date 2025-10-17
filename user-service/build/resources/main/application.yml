@@ -11,14 +11,15 @@ spring:
 
 
   jpa:
+    defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.MySQLDialect
     properties:
       hibernate:
       show-sql: true
       format-sql: true
     hibernate:
-      # ddl-auto: create-drop
-      ddl-auto: update
+      ddl-auto: create-drop
+      # ddl-auto: update
 
   autoconfigure:
     exclude:
