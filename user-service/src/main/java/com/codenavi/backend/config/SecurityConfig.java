@@ -1,8 +1,7 @@
 package com.codenavi.backend.config;
 
 import com.codenavi.backend.jwt.JwtAuthenticationFilter;
-import com.codenavi.backend.service.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,7 +52,7 @@ public class SecurityConfig {
                                 "/api/solutions/**" // 풀이 관련
                         ).authenticated()
 
-                        // 나머지 모든 요청은 인증 필요
+                        // 3. 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 );
 
