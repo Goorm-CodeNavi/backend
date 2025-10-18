@@ -19,7 +19,7 @@ public class SolutionDetailDto {
     private ImplementationDto implementation;
     private StatusInfoDto statusInfo;
 
-    // --- 중첩 DTO 클래스들 ---
+    // --- API 응답의 각 JSON 객체에 해당하는 중첩 DTO 클래스들 ---
 
     @Getter
     @Builder
@@ -59,8 +59,8 @@ public class SolutionDetailDto {
     }
 
     /**
-     * Solution 엔티티와 연관된 모든 정보를 DTO로 변환합니다.
-     * @param solution 조회된 Solution 엔티티 (Problem, ThinkingProcess 포함)
+     * Solution 엔티티와 연관된 모든 정보를 DTO로 변환하는 정적 팩토리 메소드입니다.
+     * @param solution 조회된 Solution 엔티티 (Problem, ThinkingProcess를 포함해야 함)
      * @return 변환된 DTO 객체
      */
     public static SolutionDetailDto from(Solution solution) {
@@ -104,3 +104,4 @@ public class SolutionDetailDto {
                 .build();
     }
 }
+

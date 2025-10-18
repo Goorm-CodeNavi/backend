@@ -32,8 +32,8 @@ public class CodeExecutionDto {
         private String expectedOutput;
         private String actualOutput;
         private boolean isCorrect;
-        private long executionTime;
-        private double memoryUsed;
+        private double executionTime; // 초 단위
+        private double memoryUsed; // KB 단위
     }
 
     /**
@@ -43,6 +43,18 @@ public class CodeExecutionDto {
     @Builder
     public static class CompileErrorResponse {
         private String errorType;
+        private String errorMessage;
+    }
+
+    /**
+     * 런타임 에러 발생 시 응답 `result`에 포함될 DTO 입니다.
+     */
+    @Getter
+    @Builder
+    public static class RuntimeErrorResponse {
+        private String errorType;
+        private int failedCaseNumber;
+        private String input;
         private String errorMessage;
     }
 }

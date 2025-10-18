@@ -23,3 +23,7 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+judge0:
+  api:
+    # RapidAPI에서 제공하는 Judge0 엔드포인트 주소입니다.
+    url: https://judge0-ce.p.rapidapi.com

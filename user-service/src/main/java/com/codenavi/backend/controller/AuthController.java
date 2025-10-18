@@ -72,7 +72,7 @@ public class AuthController {
         if (signUpRequest.getPassword().length() < 8) {
             return ResponseEntity
                     .badRequest() // 400 상태 코드
-                    .body(ApiResponse.onFailure("SIGNUP4000", "비밀번호는 8자 이상이어야 합니다.", "입력값을 확인해주세요."));
+                    .body(ApiResponse.onFailure("SIGNUP4000", "잘못된 요청입니다.", "비밀번호는 8자 이상이어야 합니다."));
         }
 
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
