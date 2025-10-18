@@ -12,6 +12,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - APP_JWT_SECRET=${APP_JWT_SECRET}
+      - APP_JWT_EXPIRATION=${APP_JWT_EXPIRATION}
+
     restart: unless-stopped
 
   codenavi-db:
@@ -25,6 +28,18 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+  ai-service:
+    build: .
+    image: ${DOCKER_USERNAME}/ai-service:latest
+    ports:
+      - "8000:8000"  
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
     restart: unless-stopped
 
 volumes:
