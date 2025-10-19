@@ -1,12 +1,5 @@
 package com.codenavi.backend.controller;
 
-import com.codenavi.backend.dto.ApiResponse;
-import com.codenavi.backend.dto.ProblemDetailDto;
-import com.codenavi.backend.dto.ProblemListDto;
-import com.codenavi.backend.dto.RecommendedProblemDto;
-import com.codenavi.backend.dto.*;
-import com.codenavi.backend.exception.CodeCompilationException;
-import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
@@ -21,11 +14,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -77,22 +69,10 @@ public class ProblemController {
     @Operation(summary = "문제 리스트 조회", description = "페이지네이션, 필터링, 검색을 지원하는 문제 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblemList(
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "한 페이지당 데이터 개수", example = "10")
-            @RequestParam(defaultValue = "10") int size,
-
-            @Parameter(description = "카테고리 필터 (예: 알고리즘)")
-            @RequestParam(required = false) String category,
-
-            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)")
-            @RequestParam(required = false) List<String> tags,
-
-            @Parameter(description = "문제 제목 검색어")
-            @RequestParam(required = false) String query
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
+            @Parameter(description = "페이지 번호 (0부터 시작)") @PageableDefault(size = 10) Pageable pageable,
+            @Parameter(description = "카테고리 필터 (예: 알고리즘)") @RequestParam(required = false) String category,
+            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)") @RequestParam(required = false) List<String> tags,
+            @Parameter(description = "문제 제목 검색어") @RequestParam(required = false) String query) {
         Page<ProblemListDto> problemPage = problemService.getProblemList(pageable, category, tags, query);
         return ResponseEntity.ok(ApiResponse.onSuccess(problemPage));
     }
@@ -138,37 +118,6 @@ public class ProblemController {
     }
 
     @Operation(summary = "코드 실행", description = "사용자 코드를 공개 테스트케이스에 대해 실행하고 결과를 즉시 반환합니다.", security = @SecurityRequirement(name = "bearerAuth"))
-    @PostMapping("/{problemNumber}/run")
-    public ResponseEntity<ApiResponse<?>> runCode(
-            @PathVariable String problemNumber,
-            @Valid @RequestBody CodeExecutionDto.Request request,
-            Authentication authentication) {
-        try {
-            List<CodeExecutionDto.Response> results = problemService.runCode(problemNumber, request);
-            return ResponseEntity.ok(ApiResponse.onSuccess(results));
-
-        } catch (ResourceNotFoundException e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
-
-        } catch (CodeCompilationException e) {
-            // 컴파일 에러 DTO 생성
-            CodeExecutionDto.CompileErrorResponse errorResponse = CodeExecutionDto.CompileErrorResponse.builder()
-                    .errorType("Compile Error")
-                    .errorMessage(e.getCompileErrorMessage())
-                    .build();
-
-            // 422 Unprocessable Entity 응답 반환
-            return ResponseEntity
-                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .body(ApiResponse.onFailure("EXEC4221", "코드를 처리할 수 없습니다.", errorResponse));
-        }
-    }
-
-    /**
-     * 코드 실행 API
-     */
     @PostMapping("/{problemNumber}/run")
     public ResponseEntity<ApiResponse<?>> runCode(
             @Parameter(description = "코드를 실행할 문제의 고유 번호", example = "1000") @PathVariable String problemNumber,
