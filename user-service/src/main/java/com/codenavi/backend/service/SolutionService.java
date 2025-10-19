@@ -214,4 +214,3 @@ public class SolutionService {
         return SolutionDetailDto.from(solution);
     }
 }
-

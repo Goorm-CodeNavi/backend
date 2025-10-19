@@ -31,6 +31,33 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    // 인증 실패 (JWT 없음, 만료 등)
+    @ExceptionHandler({io.jsonwebtoken.JwtException.class, org.springframework.security.core.AuthenticationException.class})
+    public ResponseEntity<ApiResponse<?>> handleAuthenticationException(Exception ex, WebRequest request) {
+        log.warn("### Authentication failed: {} [Request: {}]", ex.getMessage(), request.getDescription(false));
+
+        ApiResponse<?> response = ApiResponse.onFailure(
+                "TOKEN4001",
+                "토큰이 없거나 만료 되었습니다.",
+                "1. JWT를 다시 한번 확인해주세요.(유효기간, Bearer, 등), 2. API 명세서의 요구사항을 모두 지켰는지 확인해주세요(DTO오타, 주소, 등)"
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    // 인가 실패 (권한 없음)
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<?>> handleAccessDeniedException(Exception ex, WebRequest request) {
+        log.warn("### Access denied: {} [Request: {}]", ex.getMessage(), request.getDescription(false));
+
+        ApiResponse<?> response = ApiResponse.onFailure(
+                "AUTH4003",
+                "권한이 없습니다.",
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
 
     // 필요하다면 특정 예외를 위한 핸들러를 추가할 수 있습니다.
     // 예: @ExceptionHandler(CustomException.class)
