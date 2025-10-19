@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +33,10 @@ public class Solution {
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem; // 문제 번호
 
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt; // 생성 일자
+
     @OneToOne(mappedBy = "solution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ThinkingProcess thinkingProcess;
 
@@ -43,9 +48,6 @@ public class Solution {
 
     @OneToMany(mappedBy = "solution", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NotionSyncRecord> notionSyncRecords = new ArrayList<>();
-
-
-
 
     @Embeddable
     @Getter

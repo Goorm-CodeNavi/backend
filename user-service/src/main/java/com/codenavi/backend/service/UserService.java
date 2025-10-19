@@ -1,9 +1,13 @@
 package com.codenavi.backend.service;
 
+import com.codenavi.backend.domain.Solution;
 import com.codenavi.backend.domain.User;
 import com.codenavi.backend.dto.PasswordChangeRequest;
+import com.codenavi.backend.dto.SolutionDetailDto;
 import com.codenavi.backend.dto.UserProfileResponse;
 import com.codenavi.backend.dto.UserUpdateRequest;
+import com.codenavi.backend.exception.ResourceNotFoundException;
+import com.codenavi.backend.repository.SolutionRepository;
 import com.codenavi.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,8 @@ public class UserService {
 
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+
+    private final SolutionRepository solutionRepository;
 
     // 유저 프로필 정보 가져오기
     @Transactional(readOnly = true)

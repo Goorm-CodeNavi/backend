@@ -9,18 +9,21 @@ spring:
     url: jdbc:mysql://localhost:3306/codenavi-db?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     username: root
 
-
   jpa:
     defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.MySQLDialect
-    properties:
-      hibernate:
-      show-sql: true
-      format-sql: true
     hibernate:
       ddl-auto: create-drop
       # ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
 
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+judge0:
+  api:
+    # RapidAPI에서 제공하는 Judge0 엔드포인트 주소입니다.
+    url: https://judge0-ce.p.rapidapi.com

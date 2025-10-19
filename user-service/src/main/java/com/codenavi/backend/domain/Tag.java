@@ -25,7 +25,10 @@ public class Tag extends BaseTimeEntity {
     @Column(name = "display_name")
     private String displayName; // 표시용 이름
 
+    @Lob
+    @Column(name = "tags_description", columnDefinition = "TEXT")
     private String description; // 설명
+
     private String color; // 색상코드
 
 //    @Column(name = "usage_count")

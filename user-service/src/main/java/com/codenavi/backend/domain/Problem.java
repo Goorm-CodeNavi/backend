@@ -69,15 +69,15 @@ public class Problem {
     @NoArgsConstructor
     public static class Description {
         @Lob
-        @Column(name = "desc_content")
+        @Column(name = "desc_content", columnDefinition = "TEXT")
         private String content; // 문제 설명 (핵심 내용)
 
         @Lob
-        @Column(name = "desc_input")
+        @Column(name = "desc_input", columnDefinition = "TEXT")
         private String inputDescription; // 입력 설명 (제약조건 포함)
 
         @Lob
-        @Column(name = "desc_output")
+        @Column(name = "desc_output", columnDefinition = "TEXT")
         private String outputDescription; // 출력 설명
     }
 
@@ -111,18 +111,18 @@ public class Problem {
     @NoArgsConstructor
     public static class Editorial {
         @Lob
-        @Column(name = "ai_summary")
+        @Column(name = "ai_summary", columnDefinition = "TEXT")
         private String summary; // AI가 생성한 '문제 요약'
 
         @Lob
-        @Column(name = "ai_strategy")
+        @Column(name = "ai_strategy", columnDefinition = "TEXT")
         private String strategy; // AI가 생성한 '해결 전략 및 접근법'
 
         @Embedded
         private Complexity complexity; // AI가 분석한 '시간/공간 복잡도'
 
         @Lob
-        @Column(name = "ai_pseudocode")
+        @Column(name = "ai_pseudocode", columnDefinition = "TEXT")
         private String pseudocode; // AI가 생성한 '의사코드'
 
         // AI의 모범 답안 코드도 추가할 수 있습니다.
