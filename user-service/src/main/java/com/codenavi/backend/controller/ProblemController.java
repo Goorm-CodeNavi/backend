@@ -6,18 +6,16 @@ import com.codenavi.backend.exception.CodeRuntimeException;
 import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import com.codenavi.backend.service.SolutionService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -49,22 +47,8 @@ public class ProblemController {
     @PostMapping("/{problemNumber}/solutions")
     public ResponseEntity<ApiResponse<?>> createSolutionWithCanvas(
             @Parameter(description = "풀이를 시작할 문제의 고유 번호", required = true, example = "1000") @PathVariable String problemNumber,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "최초로 저장할 사고 과정 내용",
-                    required = true,
-                    content = @Content(
-                            schema = @Schema(implementation = CreateSolutionDto.Request.class),
-                            examples = @ExampleObject(
-                                    name = "사고 과정 최초 저장 예시",
-                                    value = "{\n" +
-                                            "  \"problemSummary\": \"최초로 작성한 문제 요약.\",\n" +
-                                            "  \"solutionStrategy\": \"최초로 작성한 해결 전략.\",\n" +
-                                            "  \"complexityAnalysis\": { \"timeAndSpace\": \"O(N) O(N)\" },\n" +
-                                            "  \"pseudocode\": \"최초로 작성한 의사코드.\"\n" +
-                                            "}"
-                            )
-                    )
-            )
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "최초로 저장할 사고 과정 내용", required = true,
+                    content = @Content(schema = @Schema(implementation = CreateSolutionDto.Request.class)))
             @RequestBody CreateSolutionDto.Request request,
             Authentication authentication) {
 
@@ -76,7 +60,6 @@ public class ProblemController {
                     .status(HttpStatus.CREATED)
                     .body(ApiResponse.onSuccess(new CreateSolutionDto.Response(newSolutionId)));
         } catch (ResourceNotFoundException e) {
-            // Service에서 "문제를 찾을 수 없음" 예외가 발생하면 404 응답을 반환합니다.
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
@@ -86,24 +69,10 @@ public class ProblemController {
     @Operation(summary = "문제 리스트 조회", description = "페이지네이션, 필터링, 검색을 지원하는 문제 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProblemList(
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "한 페이지당 데이터 개수", example = "10")
-            @RequestParam(defaultValue = "10") int size,
-
-            @Parameter(description = "카테고리 필터 (예: 알고리즘)")
-            @RequestParam(required = false) String category,
-
-            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)")
-            @RequestParam(required = false) List<String> tags,
-
-            @Parameter(description = "문제 제목 검색어")
-            @RequestParam(required = false) String query
-    ) {
-        // ⚙️ Pageable 객체 직접 생성
-        Pageable pageable = PageRequest.of(page, size);
-
+            @Parameter(description = "페이지 번호 (0부터 시작)") @PageableDefault(size = 10) Pageable pageable,
+            @Parameter(description = "카테고리 필터 (예: 알고리즘)") @RequestParam(required = false) String category,
+            @Parameter(description = "태그 필터 (영문 name, 쉼표로 구분. 예: dp,stack)") @RequestParam(required = false) List<String> tags,
+            @Parameter(description = "문제 제목 검색어") @RequestParam(required = false) String query) {
         Page<ProblemListDto> problemPage = problemService.getProblemList(pageable, category, tags, query);
         return ResponseEntity.ok(ApiResponse.onSuccess(problemPage));
     }
@@ -152,18 +121,7 @@ public class ProblemController {
     @PostMapping("/{problemNumber}/run")
     public ResponseEntity<ApiResponse<?>> runCode(
             @Parameter(description = "코드를 실행할 문제의 고유 번호", example = "1000") @PathVariable String problemNumber,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "코드 실행 요청 본문 예시",
-                    required = true,
-                    content = @Content(
-                            schema = @Schema(implementation = CodeExecutionDto.Request.class),
-                            examples = @ExampleObject(
-                                    name = "Java 코드 예시",
-                                    value = "{ \"language\": \"java\", \"code\": \"import java.util.Scanner; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); int a = sc.nextInt(); int b = sc.nextInt(); System.out.println(a + b); } }\" }"
-                            )
-                    )
-            )
-            @RequestBody CodeExecutionDto.Request request,
+            @Valid @RequestBody CodeExecutionDto.Request request,
             Authentication authentication) {
         try {
             List<CodeExecutionDto.Response> results = problemService.runCode(problemNumber, request);

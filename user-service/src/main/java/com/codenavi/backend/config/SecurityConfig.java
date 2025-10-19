@@ -45,7 +45,7 @@ public class SecurityConfig {
                                 "/api/problems", // GET 문제 리스트 조회
                                 // Swagger UI 경로
                                 "/swagger-ui/**",
-                                // OpenAPI v3 API 문서 경로d
+                                // OpenAPI v3 API 문서 경로
                                 "/v3/api-docs/**"
                         ).permitAll()
 
