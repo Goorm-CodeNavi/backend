@@ -42,7 +42,11 @@ public class SecurityConfig {
                         // 1. 인증 없이 모두 접근 가능한 경로
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/problems" // GET 문제 리스트 조회
+                                "/api/problems", // GET 문제 리스트 조회
+                                // Swagger UI 경로
+                                "/swagger-ui/**",
+                                // OpenAPI v3 API 문서 경로
+                                "/v3/api-docs/**"
                         ).permitAll()
 
                         // 2. 인증된 사용자만 접근 가능한 경로

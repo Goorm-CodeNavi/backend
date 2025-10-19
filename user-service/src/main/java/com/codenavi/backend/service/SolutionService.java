@@ -288,6 +288,7 @@ public class SolutionService {
             case "java": return 62;
             case "python": return 71;
             case "javascript": return 63;
+            case "c": return 48;
             default: throw new IllegalArgumentException("지원하지 않는 언어입니다: " + language);
         }
     }
