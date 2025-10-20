@@ -13,7 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -128,9 +130,15 @@ public class UserController {
     @GetMapping("/me/submissions")
     public ResponseEntity<ApiResponse<?>> getMySubmissions(
             Authentication authentication,
-            @Parameter(description = "페이지 번호 (0부터 시작)") @PageableDefault(size = 10) Pageable pageable) {
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "한 페이지당 데이터 개수", example = "10")
+            @RequestParam(defaultValue = "10") int size
+    ) {
 
         String username = authentication.getName();
+        Pageable pageable = PageRequest.of(page, size);
         try {
             Page<SolutionHistoryDto> historyPage = solutionService.getSolutionHistoryForUser(username, pageable);
             return ResponseEntity.ok(ApiResponse.onSuccess(historyPage));

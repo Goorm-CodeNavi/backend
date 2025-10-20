@@ -103,7 +103,7 @@ public class SolutionController {
     })
     @PostMapping("/{solutionId}/submit")
     public ResponseEntity<ApiResponse<?>> submitCode(
-            @Parameter(description = "코드를 제출할 풀이의 ID", required = true, example = "101") @PathVariable Long solutionId,
+            @Parameter(description = "코드를 제출할 풀이의 ID", required = true, example = "1") @PathVariable Long solutionId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "제출할 코드, 언어, 최종 사고 과정", required = true,
                     content = @Content(schema = @Schema(implementation = CodeSubmissionDto.Request.class)))
             @Valid @RequestBody CodeSubmissionDto.Request request,
