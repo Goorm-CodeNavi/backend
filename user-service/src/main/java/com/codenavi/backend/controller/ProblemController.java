@@ -6,13 +6,13 @@ import com.codenavi.backend.exception.CodeRuntimeException;
 import com.codenavi.backend.exception.ResourceNotFoundException;
 import com.codenavi.backend.service.ProblemService;
 import com.codenavi.backend.service.SolutionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -60,6 +60,7 @@ public class ProblemController {
                     .status(HttpStatus.CREATED)
                     .body(ApiResponse.onSuccess(new CreateSolutionDto.Response(newSolutionId)));
         } catch (ResourceNotFoundException e) {
+            // Service에서 "문제를 찾을 수 없음" 예외가 발생하면 404 응답을 반환합니다.
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "데이터를 찾을 수 없습니다.", e.getMessage()));
