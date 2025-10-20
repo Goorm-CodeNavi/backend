@@ -6,6 +6,7 @@ spring:
     include: secret
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:mysql://localhost:3306/codenavi?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     url: jdbc:mysql://codenavi-db:3306/codenavi?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     username: root
 
