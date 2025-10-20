@@ -40,8 +40,7 @@ public class SolutionDetailDto {
     @Getter
     @Builder
     public static class ComplexityAnalysisDto {
-        private String time;
-        private String space;
+        private String timeAndSpace;
     }
 
     @Getter
@@ -74,8 +73,7 @@ public class SolutionDetailDto {
                         .complexityAnalysis(
                                 (tp.getComplexityAnalysis() != null) ?
                                         ComplexityAnalysisDto.builder()
-                                                .time(tp.getComplexityAnalysis().getTimeComplexity())
-                                                .space(tp.getComplexityAnalysis().getSpaceComplexity())
+                                                .timeAndSpace(tp.getComplexityAnalysis().getTimeComplexity())
                                                 .build() : null
                         )
                         .pseudocode(tp.getPseudocode() != null ? tp.getPseudocode().getContent() : null)

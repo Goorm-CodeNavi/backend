@@ -1,10 +1,6 @@
 package com.codenavi.backend.controller;
 
-import com.codenavi.backend.dto.ApiResponse;
-import com.codenavi.backend.dto.CodeExecutionDto;
-import com.codenavi.backend.dto.CodeSubmissionDto;
-import com.codenavi.backend.dto.SolutionDetailDto;
-import com.codenavi.backend.dto.ThinkingCanvasDto;
+import com.codenavi.backend.dto.*;
 import com.codenavi.backend.exception.CodeCompilationException;
 import com.codenavi.backend.exception.CodeRuntimeException;
 import com.codenavi.backend.exception.ResourceNotFoundException;
@@ -12,6 +8,7 @@ import com.codenavi.backend.service.SolutionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -46,6 +43,22 @@ public class SolutionController {
     @PostMapping("/{solutionId}/canvas")
     public ResponseEntity<ApiResponse<?>> updateThinkingCanvas(
             @Parameter(description = "수정할 풀이의 ID") @PathVariable Long solutionId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "최초로 저장할 사고 과정 내용",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = CreateSolutionDto.Request.class),
+                            examples = @ExampleObject(
+                                    name = "사고 과정 최초 저장 예시",
+                                    value = "{\n" +
+                                            "  \"problemSummary\": \"최초로 작성한 문제 요약.\",\n" +
+                                            "  \"solutionStrategy\": \"최초로 작성한 해결 전략.\",\n" +
+                                            "  \"complexityAnalysis\": { \"timeAndSpace\": \"O(N) O(N)\" },\n" +
+                                            "  \"pseudocode\": \"최초로 작성한 의사코드.\"\n" +
+                                            "}"
+                            )
+                    )
+            )
             @RequestBody ThinkingCanvasDto.Request request,
             Authentication authentication) {
 
@@ -104,8 +117,31 @@ public class SolutionController {
     @PostMapping("/{solutionId}/submit")
     public ResponseEntity<ApiResponse<?>> submitCode(
             @Parameter(description = "코드를 제출할 풀이의 ID", required = true, example = "1") @PathVariable Long solutionId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "제출할 코드, 언어, 최종 사고 과정", required = true,
-                    content = @Content(schema = @Schema(implementation = CodeSubmissionDto.Request.class)))
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "제출할 코드, 언어, 최종 사고 과정",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = CodeSubmissionDto.Request.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "코드 제출 예시",
+                                            summary = "Java 코드 제출",
+                                            value = "{\n" +
+                                                    "  \"language\": \"java\",\n" +
+                                                    "  \"code\": \"import java.util.Scanner; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); int a = sc.nextInt(); int b = sc.nextInt(); System.out.println(a + b); } }\",\n" +
+                                                    "  \"problemSummary\": \"최종 요약입니다.\",\n" +
+                                                    "  \"solutionStrategy\": \"최종 전략입니다.\",\n" +
+                                                    "  \"complexityAnalysis\": {\n" +
+                                                    "    \"time\": \"O(N)\",\n" +
+                                                    "    \"space\": \"O(N)\"\n" +
+                                                    "  },\n" +
+                                                    "  \"pseudocode\": \"최종 의사코드입니다.\",\n" +
+                                                    "  \"timeSpent\": 120000\n" +
+                                                    "}"
+                                    )
+                            }
+                    )
+            )
             @Valid @RequestBody CodeSubmissionDto.Request request,
             Authentication authentication) {
 

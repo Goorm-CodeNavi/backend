@@ -49,8 +49,22 @@ public class ProblemController {
     @PostMapping("/{problemNumber}/solutions")
     public ResponseEntity<ApiResponse<?>> createSolutionWithCanvas(
             @Parameter(description = "풀이를 시작할 문제의 고유 번호", required = true, example = "1000") @PathVariable String problemNumber,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "최초로 저장할 사고 과정 내용", required = true,
-                    content = @Content(schema = @Schema(implementation = CreateSolutionDto.Request.class)))
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "최초로 저장할 사고 과정 내용",
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = CreateSolutionDto.Request.class),
+                            examples = @ExampleObject(
+                                    name = "사고 과정 최초 저장 예시",
+                                    value = "{\n" +
+                                            "  \"problemSummary\": \"최초로 작성한 문제 요약.\",\n" +
+                                            "  \"solutionStrategy\": \"최초로 작성한 해결 전략.\",\n" +
+                                            "  \"complexityAnalysis\": { \"timeAndSpace\": \"O(N) O(N)\" },\n" +
+                                            "  \"pseudocode\": \"최초로 작성한 의사코드.\"\n" +
+                                            "}"
+                            )
+                    )
+            )
             @RequestBody CreateSolutionDto.Request request,
             Authentication authentication) {
 
