@@ -14,9 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
+//@Configuration
 //// --- 👇 수정된 부분: 디버그 모드를 활성화합니다. ---
-@EnableWebSecurity(debug = true)
+//@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -45,7 +45,8 @@ public class SecurityConfig {
                 // ✅ 세션 사용 안 함 (JWT는 무상태)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // ✅ 접근 권한 설정.authorizeHttpRequests(auth -> auth
+                // ✅ 접근 권한 설정
+                .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 모두 접근 가능한 경로
                         .requestMatchers(
                                 "/",
