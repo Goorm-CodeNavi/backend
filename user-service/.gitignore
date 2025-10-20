@@ -171,5 +171,25 @@ Temporary Items
 *.iml
 build/
 local.properties
+# ✅ Gradle
+.gradle/
+build/
 
+# ✅ IntelliJ / Android Studio
+.idea/
+*.iml
+out/
+local.properties
+
+# ✅ QueryDSL 자동 생성 Q 클래스 무시
+**/build/generated/
+**/build/tmp/
+
+# ✅ macOS
+.DS_Store
+
+# ✅ 로그, 임시, 환경파일
+*.log
+*.tmp
+*.env
 # End of https://www.toptal.com/developers/gitignore/api/macos,intellij,java
