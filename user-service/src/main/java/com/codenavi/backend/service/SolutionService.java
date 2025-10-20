@@ -179,8 +179,7 @@ public class SolutionService {
 
         if (thinkingProcess.getComplexityAnalysis() == null) thinkingProcess.setComplexityAnalysis(new ThinkingProcess.ComplexityAnalysis());
         if (complexityDto != null) {
-            thinkingProcess.getComplexityAnalysis().setTimeComplexity(complexityDto.getTime());
-            thinkingProcess.getComplexityAnalysis().setSpaceComplexity(complexityDto.getSpace());
+            thinkingProcess.getComplexityAnalysis().setTimeComplexity(complexityDto.getTimeAndSpace());
         }
 
         if (thinkingProcess.getPseudocode() == null) thinkingProcess.setPseudocode(new ThinkingProcess.Pseudocode());

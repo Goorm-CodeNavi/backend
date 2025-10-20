@@ -23,7 +23,6 @@ public class ThinkingCanvasDto {
     @Setter
     @NoArgsConstructor
     public static class ComplexityDto {
-        private String time;
-        private String space;
+        private String timeAndSpace;
     }
 }

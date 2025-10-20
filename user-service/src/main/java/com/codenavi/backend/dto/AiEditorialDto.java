@@ -19,8 +19,7 @@ public class AiEditorialDto {
     @Getter
     @Builder
     public static class ComplexityDto {
-        private String time;
-        private String space;
+        private String timeAndSpace;
     }
 
     /**
@@ -37,8 +36,7 @@ public class AiEditorialDto {
                 .summary(editorial.getSummary())
                 .strategy(editorial.getStrategy())
                 .complexity(ComplexityDto.builder()
-                        .time(complexity.getTime())
-                        .space(complexity.getSpace())
+                        .timeAndSpace(complexity.getTimeAndSpace())
                         .build())
                 .pseudocode(editorial.getPseudocode())
                 .build();
