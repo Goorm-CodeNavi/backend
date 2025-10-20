@@ -14,9 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
-// --- 👇 수정된 부분: 디버그 모드를 활성화합니다. ---
-@EnableWebSecurity(debug = true)
+//@Configuration
+//// --- 👇 수정된 부분: 디버그 모드를 활성화합니다. ---
+//@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -35,17 +35,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // ✅ 기본 폼 로그인 / HTTP Basic 로그인 비활성화
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+
+                // ✅ CSRF / CORS 비활성화 (API 서버에서는 보통 이렇게)
                 .cors(cors -> cors.disable())
                 .csrf(csrf -> csrf.disable())
+                // ✅ 세션 사용 안 함 (JWT는 무상태)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ✅ 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 모두 접근 가능한 경로
                         .requestMatchers(
+                                "/",
+                                "/error",
                                 "/api/auth/**",
-                                "/api/problems", // GET 문제 리스트 조회
-                                // Swagger UI 경로
+                                "/api/problems",     // 문제 리스트
                                 "/swagger-ui/**",
-                                // OpenAPI v3 API 문서 경로
                                 "/v3/api-docs/**"
                         ).permitAll()
 
