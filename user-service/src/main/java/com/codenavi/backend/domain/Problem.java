@@ -131,17 +131,13 @@ public class Problem {
 //        private String solutionCode;
     }
 
-
     // AI와 사용자의 복잡도 클래스는 재사용할 수 있습니다.
     @Embeddable
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Complexity {
-        @Column(name = "comp_time")
-        private String time;
-
-        @Column(name = "comp_space")
-        private String space;
+        @Column(name = "comp_content")
+        private String timeAndSpace; // 시간과 공간을 하나의 문자열로 저장
     }
 }
