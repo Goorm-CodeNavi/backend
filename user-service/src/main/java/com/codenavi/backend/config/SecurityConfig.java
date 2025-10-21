@@ -46,15 +46,18 @@ public class SecurityConfig {
                                 // Swagger UI 경로
                                 "/swagger-ui/**",
                                 // OpenAPI v3 API 문서 경로d
-                                "/v3/api-docs/**"
-                        ).permitAll()
-
-                        // 2. 인증된 사용자만 접근 가능한 경로
-                        .requestMatchers(
+                                "/v3/api-docs/**",
                                 "/api/problems/**", // 문제 상세, 추천, 실행, 해설 등
                                 "/api/users/me/**", // 내 정보 관련
                                 "/api/solutions/**" // 풀이 관련
-                        ).authenticated()
+                        ).permitAll()
+
+                        // 2. 인증된 사용자만 접근 가능한 경로
+//                        .requestMatchers(
+//                                "/api/problems/**", // 문제 상세, 추천, 실행, 해설 등
+//                                "/api/users/me/**", // 내 정보 관련
+//                                "/api/solutions/**" // 풀이 관련
+//                        ).authenticated()
 
                         // 3. 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
