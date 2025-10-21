@@ -1,14 +1,21 @@
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
 spring:
   profiles:
     include: secret
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #url: jdbc:mysql://localhost:3306/codenavi-db?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
+    # url: jdbc:mysql://localhost:3306/codenavi-db?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     url: jdbc:mysql://codenavi-db:33063/codenavi?serverTimezone=Asia/Seoul&createDatabaseIfNotExist=true
     username: root
+  messages:
+    encoding: UTF-8
 
   jpa:
     defer-datasource-initialization: true
