@@ -17,11 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class SolutionService {
 
     private final SolutionRepository solutionRepository;
@@ -89,26 +87,37 @@ public class SolutionService {
         return solutionPage.map(SolutionHistoryDto::from);
     }
 
+    @Transactional(readOnly = true)
+    public SolutionDetailDto getSolutionDetail(Long solutionId, String username) {
+        User currentUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+        Solution solution = solutionRepository.findByIdWithDetails(solutionId)
+                .orElseThrow(() -> new ResourceNotFoundException("해당 제출 기록을 찾을 수 없습니다."));
+
+        if (!solution.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("자신의 제출 기록만 조회할 수 있습니다.");
+        }
+        return SolutionDetailDto.from(solution);
+    }
+
     @Transactional
     public CodeSubmissionDto.Response submitCode(Long solutionId, String username, CodeSubmissionDto.Request request) {
         User currentUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
-
-        // --- 👇 수정된 부분 ---
-        // 기본 findById 대신, 연관된 엔티티(Problem 등)를 함께 불러오는 findByIdWithDetails를 사용합니다.
         Solution solution = solutionRepository.findByIdWithDetails(solutionId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 풀이 기록을 찾을 수 없습니다."));
-        // -------------------
 
         if (!solution.getUser().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("자신의 풀이에만 코드를 제출할 수 있습니다.");
         }
 
-        // 제출된 코드, 언어, 측정 시간, 최종 사고 과정을 Solution 엔티티에 업데이트합니다.
+        // --- 👇 수정된 부분 ---
+        // 제출된 코드, 언어, 측정 시간만 업데이트합니다. (사고 과정은 업데이트하지 않음)
         solution.getImplementation().setCode(request.getCode());
         solution.getImplementation().setLanguage(request.getLanguage());
         solution.getImplementation().setImplementationTime(request.getTimeSpent());
-        updateThinkingProcessFromDto(solution.getThinkingProcess(), request);
+        // 'updateThinkingProcessFromDto(solution.getThinkingProcess(), request);' 라인을 제거했습니다.
+        // -------------------
 
         List<TestCase> allTestCases = solution.getProblem().getTestCases();
         int languageId = mapLanguageToJudge0Id(request.getLanguage());
@@ -152,22 +161,18 @@ public class SolutionService {
                 .build();
     }
 
-    // [Helper] for CreateSolutionDto
     private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, CreateSolutionDto.Request request) {
         updateThinkingProcessLogic(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(), request.getComplexityAnalysis(), request.getPseudocode());
     }
 
-    // [Helper] for ThinkingCanvasDto
     private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, ThinkingCanvasDto.Request request) {
         updateThinkingProcessLogic(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(), request.getComplexityAnalysis(), request.getPseudocode());
     }
 
-    // [Helper] for CodeSubmissionDto
-    private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, CodeSubmissionDto.Request request) {
-        updateThinkingProcessLogic(thinkingProcess, request.getProblemSummary(), request.getSolutionStrategy(), request.getComplexityAnalysis(), request.getPseudocode());
-    }
+    // --- 👇 수정된 부분: CodeSubmissionDto.Request를 받는 헬퍼 메소드를 제거했습니다. ---
+    // private void updateThinkingProcessFromDto(ThinkingProcess thinkingProcess, CodeSubmissionDto.Request request) { ... }
+    // --------------------------------------------------------------------
 
-    // [Central Logic]
     private void updateThinkingProcessLogic(ThinkingProcess thinkingProcess, String summaryContent, String strategyContent, ThinkingCanvasDto.ComplexityDto complexityDto, String pseudocodeContent) {
         if (thinkingProcess == null) return;
 
@@ -194,22 +199,5 @@ public class SolutionService {
             default: throw new IllegalArgumentException("지원하지 않는 언어입니다: " + language);
         }
     }
-    @Transactional(readOnly = true)
-    public SolutionDetailDto getSolutionDetail(Long solutionId, String username) {
-        // 1. 현재 사용자 정보를 조회합니다.
-        User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
-
-        // 2. solutionId로 풀이 기록을 상세 정보와 함께 조회합니다. 없으면 404 예외를 던집니다.
-        Solution solution = solutionRepository.findByIdWithDetails(solutionId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 제출 기록을 찾을 수 없습니다."));
-
-        // 3. 해당 풀이가 현재 로그인한 사용자의 것인지 권한을 확인합니다.
-        if (!solution.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("자신의 제출 기록만 조회할 수 있습니다.");
-        }
-
-        // 4. 조회된 엔티티를 DTO로 변환하여 반환합니다.
-        return SolutionDetailDto.from(solution);
-    }
 }
+

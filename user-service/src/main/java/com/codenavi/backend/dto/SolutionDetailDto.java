@@ -55,6 +55,7 @@ public class SolutionDetailDto {
     public static class StatusInfoDto {
         private String status;
         private LocalDateTime submittedAt;
+        private Long timeSpent; // 측정 시간 필드
     }
 
     /**
@@ -97,6 +98,7 @@ public class SolutionDetailDto {
                         StatusInfoDto.builder()
                                 .status(solution.getStatus().isCorrect() ? "정답" : "오답")
                                 .submittedAt(solution.getCreatedAt())
+                                .timeSpent(solution.getImplementation().getImplementationTime())
                                 .build()
                 )
                 .build();
