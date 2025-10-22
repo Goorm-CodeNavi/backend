@@ -74,6 +74,8 @@ jobs:
             MYSQL_USER=${{ secrets.MYSQL_USER }}
             MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
             GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            NOTION_TOKEN=${{secrets.NOTION_TOKEN}}
+            PARENT_PAGE_ID=${{secrets.PARENT_PAGE_ID}}
 
             EOF
 
