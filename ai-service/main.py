@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from api import router
+from api.notion_routers import router as notion_router
 from config import settings
 
 app = FastAPI(
@@ -10,6 +11,7 @@ app = FastAPI(
 )
 
 app.include_router(router)
+app.include_router(notion_router)
 
 if __name__ == "__main__":
     import uvicorn

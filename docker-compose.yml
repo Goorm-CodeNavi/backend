@@ -37,6 +37,8 @@ services:
       - "8000:8000"  
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - NOTION_TOKEN=${NOTION_TOKEN}
+      - PARENT_PAGE_ID=${PARENT_PAGE_ID}
       - HOST=0.0.0.0
       - PORT=8000
       - DEBUG=false
