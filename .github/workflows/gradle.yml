@@ -48,6 +48,24 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/ai-service:latest
           platforms: linux/amd64,linux/arm64
 
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./mcp-service 
+          file: ./mcp-service/Dockerfile.chatbot
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/chatbot-api:latest
+          platforms: linux/amd64,linux/arm64
+
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./mcp-service
+          file: ./mcp-service/Dockerfile.mcp
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/mcp-tools:latest
+          platforms: linux/amd64,linux/arm64
 
       - name: Copy docker-compose to EC2
         uses: appleboy/scp-action@master

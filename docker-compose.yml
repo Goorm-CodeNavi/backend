@@ -44,9 +44,7 @@ services:
       - DEBUG=false
     restart: unless-stopped
   mcp-tools:
-    build: 
-      context: ./mcp-service
-      dockerfile: Dockerfile.mcp
+    build: .
     image: ${DOCKER_USERNAME}/mcp-tools:latest
     ports:
       - "8001:8001"
@@ -57,9 +55,7 @@ services:
     restart: unless-stopped
 
   chatbot-api:
-    build: 
-      context: ./mcp-service
-      dockerfile: Dockerfile.chatbot
+    build: .
     image: ${DOCKER_USERNAME}/chatbot-api:latest
     ports:
       - "8002:8002"
