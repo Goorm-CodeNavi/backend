@@ -50,7 +50,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - HOST=http://0.0.0.0
+      - HOST=${HOST}
     depends_on:
       - ai-service
     restart: unless-stopped

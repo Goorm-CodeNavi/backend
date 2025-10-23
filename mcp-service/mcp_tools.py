@@ -24,8 +24,8 @@ app.add_middleware(
 )
 
 HOST = os.environ.get("HOST")
-MCP_API = "{}/8001".format(HOST)
-AI_API = "{}/8000".format(HOST)
+MCP_API = "http://{}/8001".format(HOST)
+AI_API = "http://{}/8000".format(HOST)
 
 # MCP 도구들 정의
 @mcp.tool()
