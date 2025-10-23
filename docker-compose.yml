@@ -43,6 +43,33 @@ services:
       - PORT=8000
       - DEBUG=false
     restart: unless-stopped
+  mcp-tools:
+    build: 
+      context: ./mcp-service
+      dockerfile: Dockerfile.mcp
+    image: ${DOCKER_USERNAME}/mcp-tools:latest
+    ports:
+      - "8001:8001"
+    environment:
+      - HOST=0.0.0.0
+    depends_on:
+      - ai-service
+    restart: unless-stopped
+
+  chatbot-api:
+    build: 
+      context: ./mcp-service
+      dockerfile: Dockerfile.chatbot
+    image: ${DOCKER_USERNAME}/chatbot-api:latest
+    ports:
+      - "8002:8002"
+    environment:
+      - HOST=0.0.0.0
+    depends_on:
+      - mcp-tools
+      - ai-service
+    restart: unless-stopped
+
 
 volumes:
   mysql_data:
