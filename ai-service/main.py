@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from api import router
 from api.notion_routers import router as notion_router
 from config import settings
