@@ -1,6 +1,26 @@
 version: "3.8"
 
 services:
+  codenavi-db:
+    image: mysql:8.0.36   
+    command: >
+      --skip-character-set-client-handshake
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_0900_ai_ci
+    environment:
+      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"  
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
   user-service:
     image: ${DOCKER_USERNAME}/user-service:latest
     ports:
@@ -8,49 +28,32 @@ services:
     depends_on:
       - codenavi-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://codenavi-db:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8_unicode_ci
+      - SPRING_DATASOURCE_URL=jdbc:mysql://codenavi-db:3306/${MYSQL_DATABASE}?useUnicode=true&connectionCollation=utf8mb4_0900_ai_ci&serverTimezone=Asia/Seoul
       - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
       - APP_JWT_SECRET=${APP_JWT_SECRET}
       - APP_JWT_EXPIRATION=${APP_JWT_EXPIRATION}
-
-    restart: unless-stopped
-
-  codenavi-db:
-    image: mysql:8
-    command: 
-      --skip-character-set-client-handshake
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_0900_ai_ci
-
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./mysql/conf.d:/etc/mysql/conf.d
-      - ./mysql/initdb.d:/docker-entrypoint-initdb.d
-
     restart: unless-stopped
 
   ai-service:
     build: .
     image: ${DOCKER_USERNAME}/ai-service:latest
     ports:
-      - "8000:8000"  
+      - "8000:8000"
     environment:
+      - TZ=Asia/Seoul
       - GROQ_API_KEY=${GROQ_API_KEY}
       - NOTION_TOKEN=${NOTION_TOKEN}
       - PARENT_PAGE_ID=${PARENT_PAGE_ID}
       - HOST=0.0.0.0
       - PORT=8000
       - DEBUG=false
+    depends_on:
+      codenavi-db:
+        condition: service_healthy
     restart: unless-stopped
+
   mcp-tools:
     build: .
     image: ${DOCKER_USERNAME}/mcp-tools:latest
@@ -73,7 +76,6 @@ services:
       - mcp-tools
       - ai-service
     restart: unless-stopped
-
 
 volumes:
   mysql_data:
