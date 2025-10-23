@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-AI_API = "http://ai-service:8000".format(HOST)
+AI_API = "http://ai-service:8000"
 
 # MCP 도구들 정의
 @mcp.tool()
