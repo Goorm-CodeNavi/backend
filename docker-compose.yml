@@ -50,8 +50,7 @@ services:
       - PORT=8000
       - DEBUG=false
     depends_on:
-      codenavi-db:
-        condition: service_healthy
+      - codenavi-db
     restart: unless-stopped
 
   mcp-tools:
