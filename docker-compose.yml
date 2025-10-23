@@ -8,9 +8,9 @@ services:
     depends_on:
       - codenavi-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://codenavi-db:3306/${MYSQL_DATABASE}?useUnicode=true&connectionCollation=utf8mb4_0900_ai_ci&serverTimezone=Asia/Seoul
-      - SPRING_DATASOURCE_USERNAME=${MYSQL_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://codenavi-db:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true&serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf8&connectionCollation=utf8_unicode_ci
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
       - APP_JWT_SECRET=${APP_JWT_SECRET}
       - APP_JWT_EXPIRATION=${APP_JWT_EXPIRATION}
@@ -19,18 +19,22 @@ services:
 
   codenavi-db:
     image: mysql:8
-    command:
+    command: 
       --skip-character-set-client-handshake
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_0900_ai_ci
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./mysql/conf.d:/etc/mysql/conf.d
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d
 
     restart: unless-stopped
 
@@ -53,7 +57,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - HOST=${HOST}
+      - HOST=http://0.0.0.0
     depends_on:
       - ai-service
     restart: unless-stopped
