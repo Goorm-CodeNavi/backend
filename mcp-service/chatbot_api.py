@@ -22,9 +22,8 @@ app.add_middleware(
 )
 
 
-HOST = os.environ.get("HOST")
-MCP_API = "{}/8001".format(HOST)
-AI_API = "{}/8000".format(HOST)
+MCP_API = "http://mcp-tools:8001"
+AI_API = "http://ai-service:8000"
 
 # 세션 저장소
 sessions: Dict[str, Dict[str, Any]] = {}
