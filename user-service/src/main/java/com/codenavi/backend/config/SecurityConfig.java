@@ -8,14 +8,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
 
 @Configuration
-// --- 👇 수정된 부분: 디버그 모드를 활성화합니다. ---
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -35,37 +36,42 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})
-                .csrf(csrf -> csrf.disable())
+                // ✅ WebConfig에서 정의한 CORS 정책 사용
+                .cors(Customizer.withDefaults())
+
+                // ✅ CSRF 비활성화 (JWT 환경)
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // ✅ 세션 비활성화
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ✅ 요청 경로별 접근 권한
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 인증 없이 모두 접근 가능한 경로
+                        // Swagger & OpenAPI 문서 허용
                         .requestMatchers(
-                                "/api/auth/**",
-                                "/api/problems", // GET 문제 리스트 조회
-                                // Swagger UI 경로
                                 "/swagger-ui/**",
-                                // OpenAPI v3 API 문서 경로d
+                                "/swagger-resources/**",
                                 "/v3/api-docs/**",
-                                "/api/problems/**", // 문제 상세, 추천, 실행, 해설 등
-                                "/api/users/me/**", // 내 정보 관련
-                                "/api/solutions/**" // 풀이 관련
+                                "/v3/api-docs.yaml",
+                                "/webjars/**"
                         ).permitAll()
 
-                        // 2. 인증된 사용자만 접근 가능한 경로
-//                        .requestMatchers(
-//                                "/api/problems/**", // 문제 상세, 추천, 실행, 해설 등
-//                                "/api/users/me/**", // 내 정보 관련
-//                                "/api/solutions/**" // 풀이 관련
-//                        ).authenticated()
+                        // 로그인/회원가입 등 인증 관련 엔드포인트 허용
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                        // 3. 나머지 모든 요청은 인증 필요
+                        // 문제 목록·상세 조회는 로그인 없이도 허용
+                        .requestMatchers(
+                                "/api/problems",
+                                "/api/problems/**"
+                        ).permitAll()
+
+                        // 그 외 요청은 인증 필요
                         .anyRequest().authenticated()
                 );
 
+        // ✅ JWT 필터 추가 (기본 인증 필터 앞에 배치)
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
